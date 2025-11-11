@@ -9,17 +9,19 @@ import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 
-interface AnalysisResultsProps {
-  results: AnalysisResults;
-  fileCount: number;
+interface ResultTableProps {
+  records: ComputerRecord[];
 }
 
-function ResultTable({ records, fileHeaders }: { records: ComputerRecord[], fileHeaders?: string[] }) {
+function ResultTable({ records }: ResultTableProps) {
     if (!records || records.length === 0) {
         return <p className="text-sm text-muted-foreground p-4">No discrepancies found.</p>;
     }
-
-    const headers = fileHeaders || ['computerName', 'lastSeen'];
+    
+    const hasDomain = records.some(r => r.domain);
+    const headers = ['computerName'];
+    if (hasDomain) headers.push('domain');
+    headers.push('lastSeen');
 
     return (
         <ScrollArea className="h-72">
@@ -34,7 +36,7 @@ function ResultTable({ records, fileHeaders }: { records: ComputerRecord[], file
                         <TableRow key={`${record.computerName}-${index}`}>
                             {headers.map(h => (
                                 <TableCell key={h} className="font-code text-xs">
-                                    {h === 'lastSeen' ? record.lastSeen?.toLocaleDateString() : String(record[h] ?? '')}
+                                    {h === 'lastSeen' && record.lastSeen ? new Date(record.lastSeen).toLocaleDateString() : String(record[h] ?? '')}
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -45,7 +47,7 @@ function ResultTable({ records, fileHeaders }: { records: ComputerRecord[], file
     );
 }
 
-export function AnalysisResults({ results, fileCount }: AnalysisResultsProps) {
+export function AnalysisResults({ results, fileCount }: { results: AnalysisResults; fileCount: number; }) {
   const totalDisappeared = results.disappearedMachines.reduce((acc, curr) => acc + curr.machines.length, 0);
   const totalDiscrepancies = results.crossComparisons.reduce((acc, curr) => acc + curr.missingInSource.length + curr.missingInTarget.length, 0);
 
@@ -90,7 +92,7 @@ export function AnalysisResults({ results, fileCount }: AnalysisResultsProps) {
                   <CardDescription>{result.machines.length} machines not seen recently.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResultTable records={result.machines} fileHeaders={['computerName', 'lastSeen']} />
+                  <ResultTable records={result.machines} />
                 </CardContent>
               </Card>
             )) : (
@@ -114,11 +116,11 @@ export function AnalysisResults({ results, fileCount }: AnalysisResultsProps) {
                 <CardContent className="space-y-4">
                     <div>
                         <h4 className="font-medium mb-2">Missing from <span className="font-code">{result.targetFile}</span> ({result.missingInTarget.length})</h4>
-                        <ResultTable records={result.missingInTarget} fileHeaders={['computerName', 'lastSeen']} />
+                        <ResultTable records={result.missingInTarget} />
                     </div>
                      <div>
                         <h4 className="font-medium mb-2">Missing from <span className="font-code">{result.sourceFile}</span> ({result.missingInSource.length})</h4>
-                        <ResultTable records={result.missingInSource} fileHeaders={['computerName', 'lastSeen']} />
+                        <ResultTable records={result.missingInSource} />
                     </div>
                 </CardContent>
               </Card>

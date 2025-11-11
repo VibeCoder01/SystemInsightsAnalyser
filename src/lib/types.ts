@@ -1,6 +1,7 @@
 export type ComputerRecord = {
   computerName: string;
   lastSeen?: Date;
+  domain?: string;
   [key: string]: any;
 };
 
