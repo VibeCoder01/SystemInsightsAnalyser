@@ -9,8 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { FileUpload } from '@/components/dashboard/file-upload';
 import { FileConfigDialog } from '@/components/dashboard/file-config-dialog';
 import { AnalysisResults as AnalysisResultsDisplay } from '@/components/dashboard/analysis-results';
-import { CheckCircle, FileText, Settings, Trash2, Loader2 } from 'lucide-react';
+import { ConsolidatedView } from '@/components/dashboard/consolidated-view';
+import { CheckCircle, FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
 
 export default function DashboardPage() {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -174,7 +177,25 @@ export default function DashboardPage() {
       )}
 
       {analysisResults && (
-        <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <Card>
+                <CardHeader>
+                <CardTitle>Analysis Summary</CardTitle>
+                <CardDescription>A high-level overview of the findings from {files.length} files.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Alert className="border-accent bg-accent/5">
+                        <AlertTriangle className="h-4 w-4 text-accent" />
+                        <AlertTitle>Truly Disappeared Machines</AlertTitle>
+                        <AlertDescription>
+                            <span className="text-2xl font-bold">{analysisResults.trulyDisappearedCount}</span> machines have not been seen in any system within the configured threshold of {settings.disappearanceThresholdDays} days.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            </Card>
+
+            <ConsolidatedView results={analysisResults} fileNames={files.map(f => f.fileName)} settings={settings}/>
+
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />
         </motion.div>
       )}

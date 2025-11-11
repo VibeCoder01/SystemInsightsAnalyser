@@ -1,4 +1,4 @@
-import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, DisappearedMachineResult } from './types';
+import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord } from './types';
 
 export function parseFileContent(content: string): { headers: string[]; data: Record<string, string>[] } {
   if (!content) {
@@ -65,21 +65,71 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
                 }
             }
         }
-        return { computerName, lastSeen, domain, ...row };
+        return { computerName, lastSeen, domain, source: file.fileName, ...row };
     });
+}
+
+function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[]): ConsolidatedRecord[] {
+    const machineMap = new Map<string, { lastSeen: Date | null, lastSeenSource: string | null, sources: { [fileName: string]: Date | undefined } }>();
+
+    allRecords.forEach(record => {
+        if (!machineMap.has(record.computerName)) {
+            machineMap.set(record.computerName, {
+                lastSeen: null,
+                lastSeenSource: null,
+                sources: Object.fromEntries(fileNames.map(name => [name, undefined]))
+            });
+        }
+
+        const machine = machineMap.get(record.computerName)!;
+
+        // Update latest overall sighting
+        if (record.lastSeen && (!machine.lastSeen || record.lastSeen > machine.lastSeen)) {
+            machine.lastSeen = record.lastSeen;
+            machine.lastSeenSource = record.source;
+        }
+
+        // Update latest sighting for this specific source
+        if (record.lastSeen && (!machine.sources[record.source] || record.lastSeen > machine.sources[record.source]!)) {
+            machine.sources[record.source] = record.lastSeen;
+        }
+    });
+
+    const consolidatedRecords: ConsolidatedRecord[] = [];
+    machineMap.forEach((value, key) => {
+        consolidatedRecords.push({
+            computerName: key,
+            ...value
+        });
+    });
+    
+    // Sort by last seen date, descending (most recent first)
+    consolidatedRecords.sort((a, b) => {
+        if (a.lastSeen && b.lastSeen) return b.lastSeen.getTime() - a.lastSeen.getTime();
+        if (a.lastSeen) return -1;
+        if (b.lastSeen) return 1;
+        return 0;
+    });
+
+    return consolidatedRecords;
 }
 
 
 export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisResults {
   const configuredFiles = files.filter(f => f.isConfigured);
   if (configuredFiles.length < 1) {
-    return { crossComparisons: [], disappearedMachines: [] };
+    return { crossComparisons: [], disappearedMachines: [], consolidatedView: [], trulyDisappearedCount: 0 };
   }
   
   // Ensure records are created with latest mappings and settings
   configuredFiles.forEach(file => {
       file.records = createComputerRecords(file, settings);
   });
+  
+  const allRecords: ComputerRecord[] = configuredFiles.flatMap(f => f.records);
+  const fileNames = configuredFiles.map(f => f.fileName);
+  
+  const consolidatedView = createConsolidatedView(allRecords, fileNames);
 
   const crossComparisons: CrossComparisonResult[] = [];
   if (configuredFiles.length > 1) {
@@ -104,21 +154,11 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
     }
   }
 
-  const disappearedMachines: DisappearedMachineResult[] = [];
   const thresholdDate = new Date();
   thresholdDate.setDate(thresholdDate.getDate() - settings.disappearanceThresholdDays);
+  
+  const trulyDisappearedMachines = consolidatedView.filter(record => record.lastSeen && record.lastSeen < thresholdDate);
 
-  configuredFiles.forEach(file => {
-    if (file.mappings.lastSeen) {
-      const disappeared = file.records.filter(r => r.lastSeen && r.lastSeen < thresholdDate);
-      if (disappeared.length > 0) {
-        disappearedMachines.push({
-          fileName: file.fileName,
-          machines: disappeared,
-        });
-      }
-    }
-  });
 
-  return { crossComparisons, disappearedMachines };
+  return { crossComparisons, disappearedMachines: [], consolidatedView, trulyDisappearedCount: trulyDisappearedMachines.length };
 }

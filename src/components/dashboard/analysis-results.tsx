@@ -2,10 +2,9 @@
 
 import type { AnalysisResults, ComputerRecord } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { CheckCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -48,66 +47,31 @@ function ResultTable({ records }: ResultTableProps) {
 }
 
 export function AnalysisResults({ results, fileCount }: { results: AnalysisResults; fileCount: number; }) {
-  const totalDisappeared = results.disappearedMachines.reduce((acc, curr) => acc + curr.machines.length, 0);
   const totalDiscrepancies = results.crossComparisons.reduce((acc, curr) => acc + curr.missingInSource.length + curr.missingInTarget.length, 0);
+
+  if (totalDiscrepancies === 0) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Analysis Summary</CardTitle>
-          <CardDescription>A high-level overview of the findings from {fileCount} files.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-            <Alert className="border-accent bg-accent/5">
-                <AlertTriangle className="h-4 w-4 text-accent" />
-                <AlertTitle>Disappeared Machines</AlertTitle>
-                <AlertDescription>
-                    <span className="text-2xl font-bold">{totalDisappeared}</span> machines have not been seen within the configured threshold.
-                </AlertDescription>
-            </Alert>
-            <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Cross-System Discrepancies</AlertTitle>
-                <AlertDescription>
-                    <span className="text-2xl font-bold">{totalDiscrepancies}</span> total inconsistencies found between systems.
-                </AlertDescription>
-            </Alert>
-        </CardContent>
-      </Card>
-        
-      <Accordion type="multiple" defaultValue={['disappeared', 'cross-comparison']} className="w-full">
-        <AccordionItem value="disappeared">
-          <AccordionTrigger>
-            <div className="flex items-center gap-2">
-                <h3 className="text-lg font-semibold">Disappeared Machines</h3>
-                <Badge variant={totalDisappeared > 0 ? "destructive" : "default"}>{totalDisappeared}</Badge>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="space-y-4 pt-4">
-            {results.disappearedMachines.length > 0 ? results.disappearedMachines.map(result => (
-              <Card key={result.fileName}>
-                <CardHeader>
-                  <CardTitle className="text-base">From: {result.fileName}</CardTitle>
-                  <CardDescription>{result.machines.length} machines not seen recently.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ResultTable records={result.machines} />
-                </CardContent>
-              </Card>
-            )) : (
-                 <div className="flex items-center gap-2 p-4 text-sm text-green-600"><CheckCircle className="size-4"/> All machines are reporting as expected.</div>
-            )}
-          </AccordionContent>
-        </AccordionItem>
+      <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="cross-comparison">
           <AccordionTrigger>
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold">Cross-System Comparison</h3>
+              <h3 className="text-lg font-semibold">Cross-System Discrepancies</h3>
                <Badge variant={totalDiscrepancies > 0 ? "secondary" : "default"}>{totalDiscrepancies}</Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent className="space-y-4 pt-4">
+              <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Info className="size-5"/> Inconsistent Records</CardTitle>
+                    <CardDescription>
+                        This report shows machines that appear in one file but are missing in another. This can help identify systems that are out of sync.
+                    </CardDescription>
+                </CardHeader>
+              </Card>
             {results.crossComparisons.length > 0 ? results.crossComparisons.map(result => (
               <Card key={`${result.sourceFile}-${result.targetFile}`}>
                 <CardHeader>

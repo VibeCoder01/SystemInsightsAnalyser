@@ -2,7 +2,17 @@ export type ComputerRecord = {
   computerName: string;
   lastSeen?: Date;
   domain?: string;
+  source: string; // The file name it came from
   [key: string]: any;
+};
+
+export type ConsolidatedRecord = {
+  computerName: string;
+  lastSeen: Date | null;
+  lastSeenSource: string | null;
+  sources: {
+    [fileName: string]: Date | undefined;
+  };
 };
 
 export type ParsedFile = {
@@ -32,6 +42,8 @@ export type DisappearedMachineResult = {
 export type AnalysisResults = {
   crossComparisons: CrossComparisonResult[];
   disappearedMachines: DisappearedMachineResult[];
+  consolidatedView: ConsolidatedRecord[];
+  trulyDisappearedCount: number;
 };
 
 export type Settings = {
