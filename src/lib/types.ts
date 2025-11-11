@@ -35,4 +35,5 @@ export type AnalysisResults = {
 
 export type Settings = {
   disappearanceThresholdDays: number;
+  caseSensitive: boolean;
 };

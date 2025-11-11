@@ -21,11 +21,13 @@ export function parseFileContent(content: string): { headers: string[]; data: Re
   return { headers, data };
 }
 
-function createComputerRecords(file: ParsedFile): ComputerRecord[] {
+function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRecord[] {
     if (!file.mappings.computerName) return [];
 
     return file.data.map(row => {
-        const computerName = row[file.mappings.computerName!]?.toLowerCase() || 'unknown';
+        const computerNameRaw = row[file.mappings.computerName!] || 'unknown';
+        const computerName = settings.caseSensitive ? computerNameRaw : computerNameRaw.toLowerCase();
+
         let lastSeen: Date | undefined = undefined;
         if (file.mappings.lastSeen) {
             const dateStr = row[file.mappings.lastSeen];
@@ -47,9 +49,9 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
     return { crossComparisons: [], disappearedMachines: [] };
   }
   
-  // Ensure records are created with latest mappings
+  // Ensure records are created with latest mappings and settings
   configuredFiles.forEach(file => {
-      file.records = createComputerRecords(file);
+      file.records = createComputerRecords(file, settings);
   });
 
   const crossComparisons: CrossComparisonResult[] = [];

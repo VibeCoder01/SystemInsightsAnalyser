@@ -7,6 +7,7 @@ const SETTINGS_KEY = 'system-insights-analyzer-settings';
 
 const defaultSettings: Settings = {
   disappearanceThresholdDays: 90,
+  caseSensitive: false,
 };
 
 export function useSettings() {
@@ -17,7 +18,8 @@ export function useSettings() {
     try {
       const storedSettings = localStorage.getItem(SETTINGS_KEY);
       if (storedSettings) {
-        setSettings(JSON.parse(storedSettings));
+        // Merge stored settings with defaults to ensure all keys are present
+        setSettings(prev => ({...defaultSettings, ...JSON.parse(storedSettings)}));
       }
     } catch (error) {
       console.error("Failed to load settings from local storage", error);
