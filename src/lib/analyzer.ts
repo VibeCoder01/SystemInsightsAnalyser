@@ -25,7 +25,7 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
     if (!file.mappings.computerName) return [];
 
     return file.data.map(row => {
-        const computerNameRaw = row[file.mappings.computerName!] || 'unknown';
+        let computerNameRaw = row[file.mappings.computerName!] || 'unknown';
         
         let computerName = computerNameRaw;
         let domain: string | undefined = undefined;
@@ -35,6 +35,9 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             computerName = domainParts.shift()!;
             domain = domainParts.join('.');
         }
+
+        // Remove leading/trailing slashes
+        computerName = computerName.replace(/^\/|\/$/g, '');
         
         computerName = settings.caseSensitive ? computerName : computerName.toLowerCase();
         if (domain) {
