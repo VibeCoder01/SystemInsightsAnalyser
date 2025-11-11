@@ -30,13 +30,24 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
         let computerName = computerNameRaw;
         let domain: string | undefined = undefined;
 
-        const domainParts = computerNameRaw.split('.');
-        if (domainParts.length > 1) {
-            computerName = domainParts.shift()!;
-            domain = domainParts.join('.');
+        // Handle domain\computer format
+        if (computerNameRaw.includes('\\')) {
+            const parts = computerNameRaw.split('\\');
+            if (parts.length > 1) {
+                domain = parts.shift()!;
+                computerName = parts.join('\\');
+            }
+        } 
+        // Handle FQDN computer.domain.com format
+        else if (computerNameRaw.includes('.')) {
+            const domainParts = computerNameRaw.split('.');
+            if (domainParts.length > 1) {
+                computerName = domainParts.shift()!;
+                domain = domainParts.join('.');
+            }
         }
 
-        // Remove leading/trailing slashes
+        // Remove leading/trailing slashes from computer name
         computerName = computerName.replace(/^\/|\/$/g, '');
         
         computerName = settings.caseSensitive ? computerName : computerName.toLowerCase();
