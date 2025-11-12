@@ -217,7 +217,7 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
                                 </div>
                             </TableCell>
                             <TableCell className="text-center">
-                                {record.lastSeen ? format(new Date(record.lastSeen), 'd LLLL yyyy') : 'Never'}
+                                {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
                             <TableCell className="font-code text-xs">{record.lastSeenSource}</TableCell>
                             {fileNames.map(name => {
@@ -261,3 +261,5 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
     </Card>
   );
 }
+
+    
