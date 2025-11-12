@@ -14,6 +14,7 @@ import { FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function DashboardPage() {
@@ -24,9 +25,28 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [filteredDisappearedCount, setFilteredDisappearedCount] = useState<{count: number, isFiltering: boolean} | null>(null);
   const { settings } = useSettings();
+  const { toast } = useToast();
 
   const handleFilesAdded = (newFiles: File[]) => {
-    newFiles.forEach(file => {
+    const uniqueNewFiles: File[] = [];
+    const existingFileNames = new Set(files.map(f => f.fileName));
+
+    for (const file of newFiles) {
+        if (existingFileNames.has(file.name)) {
+            toast({
+                variant: 'destructive',
+                title: 'File already exists',
+                description: `A file named "${file.name}" has already been uploaded.`,
+            });
+        } else {
+            uniqueNewFiles.push(file);
+            existingFileNames.add(file.name); // Add to set to handle duplicates within the same batch
+        }
+    }
+    
+    if (uniqueNewFiles.length === 0) return;
+
+    uniqueNewFiles.forEach(file => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
