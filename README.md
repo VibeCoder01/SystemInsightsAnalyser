@@ -30,9 +30,9 @@ For each management system (e.g., AD, SCCM), export a report containing at least
 **Example `ad_export.csv`:**
 ```csv
 Name,LastSeen
-CORP-PC-01,10/15/2023
+CORP-PC-01,10/15/2023 10:30
 SALES-LAPTOP-05,11/01/2023
-DEV-MACHINE,02/11/2023
+DEV-MACHINE,02/11/2023 08:00
 ```
 
 ### 2. Step 1: Upload Files
@@ -49,6 +49,7 @@ For each file you've uploaded, you need to tell the analyzer how to interpret it
 - **(Important for Dates)** If you've selected a Last Seen column, a **Date Format** input will appear. You must specify the format of your date string here.
   - For `10/15/2023`, you would enter `MM/dd/yyyy`.
   - For `15-Oct-23 10:00`, you would enter `dd-MMM-yy HH:mm`.
+  - The format string must account for all parts of the date, including time if present.
   - If you leave this field blank, the app will try to parse standard ISO formats like `2023-10-15T10:00:00Z`. It is highly recommended to provide the format to avoid ambiguity.
 - A preview of your data is shown to help you make the correct selections.
 - Click **"Save Configuration"**.
