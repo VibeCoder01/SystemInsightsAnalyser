@@ -14,7 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface FileConfigDialogProps {
   file: ParsedFile | null;
@@ -94,24 +94,34 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
           <div className="space-y-2">
             <Label>File Preview</Label>
             <ScrollArea className="h-64 rounded-md border">
-              <Table>
-                <TableHeader className="sticky top-0 bg-card">
-                  <TableRow>
-                    {file.headers.map(header => (
-                      <TableHead key={header} className="font-code text-xs">{header}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {file.data.slice(0, 10).map((row, rowIndex) => (
-                    <TableRow key={rowIndex}>
+              <div className="min-w-max">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card">
+                    <TableRow>
                       {file.headers.map(header => (
-                        <TableCell key={header} className="font-code text-xs truncate max-w-[150px]">{row[header]}</TableCell>
+                        <TableHead key={header} className="font-code text-xs whitespace-nowrap">
+                          {header}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {file.data.slice(0, 10).map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {file.headers.map(header => (
+                          <TableCell
+                            key={header}
+                            className="font-code text-xs truncate max-w-[150px] whitespace-nowrap"
+                          >
+                            {row[header]}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
         </div>
