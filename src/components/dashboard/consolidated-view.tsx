@@ -49,7 +49,10 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
                 {fileNames.map(name => (
-                  <TableHead key={name} className="font-code text-center">
+                  <TableHead
+                    key={name}
+                    className="sticky top-0 z-20 bg-card font-code text-center"
+                  >
                     {name}
                   </TableHead>
                 ))}
