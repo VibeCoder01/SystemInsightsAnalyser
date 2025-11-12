@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { AnalysisResults, Settings } from '@/lib/types';
@@ -93,8 +94,8 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                                         <TooltipContent>
                                             <p>
                                                 {record.sources[name] 
-                                                    ? `Last seen on ${new Date(record.sources[name]!).toLocaleDateString()}` 
-                                                    : 'Not present in this file'
+                                                    ? `Last seen in ${name} on ${new Date(record.sources[name]!).toLocaleDateString()}` 
+                                                    : `Not present in ${name}`
                                                 }
                                             </p>
                                             {record.sources[name] && isStale(record.sources[name], thresholdDays) && (
