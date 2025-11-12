@@ -63,13 +63,18 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
                 let parsedDate;
                 if (file.mappings.lastSeenFormat) {
                     // Use date-fns/parse with the user-provided format
-                    parsedDate = parse(dateStr, file.mappings.lastSeenFormat, new Date());
+                    try {
+                        parsedDate = parse(dateStr, file.mappings.lastSeenFormat, new Date());
+                    } catch (e) {
+                        console.error(`Error parsing date "${dateStr}" with format "${file.mappings.lastSeenFormat}" in file "${file.fileName}".`, e);
+                        parsedDate = new Date('invalid'); // Ensure it's an invalid date
+                    }
                 } else {
                     // Fallback to default JavaScript parsing
                     parsedDate = new Date(dateStr);
                 }
 
-                if (!isNaN(parsedDate.getTime())) {
+                if (parsedDate && !isNaN(parsedDate.getTime())) {
                     lastSeen = parsedDate;
                 }
             }

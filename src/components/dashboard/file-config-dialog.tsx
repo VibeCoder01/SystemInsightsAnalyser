@@ -114,7 +114,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                   </Link>.
                 </p>
                  <p className="text-xs text-muted-foreground mt-1">
-                    If left blank, it will try standard ISO format like `YYYY-MM-DDTHH:mm:ssZ`.
+                    If left blank, it will try standard ISO format like `YYYY-MM-DDTHH:mm:ssZ`. For a literal 'T', use single quotes: `yyyy-MM-dd'T'HH:mm:ss`.
                 </p>
               </div>
             )}

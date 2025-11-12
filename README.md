@@ -32,7 +32,7 @@ For each management system (e.g., AD, SCCM), export a report containing at least
 Name,LastSeen
 CORP-PC-01,10/15/2023 10:30
 SALES-LAPTOP-05,11/01/2023
-DEV-MACHINE,02/11/2023 08:00
+DEV-MACHINE,2023-11-02T08:00:00Z
 ```
 
 ### 2. Step 1: Upload Files
@@ -46,15 +46,21 @@ For each file you've uploaded, you need to tell the analyzer how to interpret it
 - Click the **"Configure"** button on a file card.
 - In the dialog, select the column from your file that contains the **Computer Name**. This is required.
 - Select the column that contains the **Last Seen Date**. This is optional. If no date column is available, select "None".
-- **(Important for Dates)** If you've selected a Last Seen column, a **Date Format** input will appear. You must specify the format of your date string here.
-  - For `10/15/2023`, you would enter `MM/dd/yyyy`.
-  - For `15-Oct-23 10:00`, you would enter `dd-MMM-yy HH:mm`.
-  - The format string must account for all parts of the date, including time if present.
-  - If you leave this field blank, the app will try to parse standard ISO formats like `2023-10-15T10:00:00Z`. It is highly recommended to provide the format to avoid ambiguity.
 - A preview of your data is shown to help you make the correct selections.
 - Click **"Save Configuration"**.
 
 A green background on the file card indicates it's configured and ready.
+
+#### **Important: Configuring Date Formats**
+
+If you've selected a "Last Seen" column, a **Date Format** input will appear. You must specify the format of your date string here to ensure it's read correctly.
+
+- **Match the Format Exactly**: The format string must account for all parts of the date and time in your data.
+  - For a date like `10/15/2023 10:30`, the format is `MM/dd/yyyy HH:mm`.
+  - For `15-Oct-23`, the format is `dd-MMM-yy`.
+- **Handling Literal Characters**: If your date string contains letters that are not part of a format code (like the `T` in `2023-10-15T10:30:00`), you must wrap them in single quotes.
+  - For `2023-10-15T10:30:00`, the correct format is `yyyy-MM-dd'T'HH:mm:ss`.
+- **Leaving it Blank**: If you leave the format field blank, the analyzer will attempt to parse standard formats like `2023-11-15T10:00:00Z`. It is **highly recommended** to provide the format to avoid ambiguity and ensure accuracy.
 
 ### 4. Step 3: Run Analysis
 
