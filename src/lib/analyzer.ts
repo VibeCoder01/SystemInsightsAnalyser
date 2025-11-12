@@ -70,7 +70,7 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
                         parsedDate = new Date('invalid'); // Ensure it's an invalid date
                     }
                 } else {
-                    // Fallback to default JavaScript parsing
+                    // Fallback to default JavaScript parsing which is good at handling ISO 8601
                     parsedDate = new Date(dateStr);
                 }
 
