@@ -43,8 +43,8 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
       <CardContent>
         <ScrollArea className="h-[600px]">
           <Table>
-            <TableHeader className="sticky top-0 bg-card z-10">
-              <TableRow>
+            <TableHeader className="sticky top-0 z-20">
+              <TableRow className="bg-card [&>th]:bg-card">
                 <TableHead className="w-[200px] font-code">Machine Name</TableHead>
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
