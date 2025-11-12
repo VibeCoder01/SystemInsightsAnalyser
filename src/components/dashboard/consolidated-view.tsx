@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useMemo } from 'react';
 import type { AnalysisResults, Settings } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -11,6 +12,9 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { format } from 'date-fns';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 
 function isStale(date: Date | undefined, thresholdDays: number): boolean {
     if (!date) return false; // Not stale if we don't have a date
@@ -33,12 +37,43 @@ function isPresentWithoutDate(date: Date | undefined): boolean {
 
 
 export function ConsolidatedView({ results, fileNames, settings }: { results: AnalysisResults; fileNames: string[], settings: Settings }) {
+  const [filterText, setFilterText] = useState('');
+  const [filterMode, setFilterMode] = useState<'simple' | 'regex'>('simple');
+  const [regexError, setRegexError] = useState<string | null>(null);
   
   if (!results.consolidatedView || results.consolidatedView.length === 0) {
     return null;
   }
   
   const thresholdDays = settings.disappearanceThresholdDays;
+
+  const filteredRecords = useMemo(() => {
+    if (!filterText) {
+      setRegexError(null);
+      return results.consolidatedView;
+    }
+
+    let regex: RegExp;
+    try {
+      if (filterMode === 'simple') {
+        const pattern = filterText
+          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
+          .replace(/\\\*/g, '.*') // Convert * to .*
+          .replace(/\\\?/g, '.'); // Convert ? to .
+        regex = new RegExp(pattern, 'i'); // Case-insensitive
+      } else {
+        regex = new RegExp(filterText, 'i');
+      }
+      setRegexError(null);
+    } catch (e: any) {
+      setRegexError(e.message);
+      return [];
+    }
+    
+    return results.consolidatedView.filter(record => regex.test(record.computerName));
+
+  }, [results.consolidatedView, filterText, filterMode]);
+
 
   const getTooltipContent = (date: Date | undefined, fileName: string) => {
     if (!date) {
@@ -58,7 +93,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
   const handleExport = () => {
     const csvHeaders = ['"Machine Name"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
     
-    const csvRows = results.consolidatedView.map(record => {
+    const csvRows = filteredRecords.map(record => {
       const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
       const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
       const lastSeenSource = record.lastSeenSource ? `"${record.lastSeenSource}"` : '""';
@@ -91,17 +126,43 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-            <div>
-                <CardTitle>Consolidated Machine View</CardTitle>
-                <CardDescription>
-                A unified list of all unique machines found across all files, showing the most recent time each machine was seen by any system.
-                </CardDescription>
+        <div className="flex flex-col gap-4">
+            <div className="flex items-start justify-between">
+                <div>
+                    <CardTitle>Consolidated Machine View</CardTitle>
+                    <CardDescription>
+                    A unified list of all unique machines found across all files. Showing {filteredRecords.length} of {results.consolidatedView.length} machines.
+                    </CardDescription>
+                </div>
+                <Button variant="outline" onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Export to CSV
+                </Button>
             </div>
-            <Button variant="outline" onClick={handleExport}>
-                <Download className="mr-2 h-4 w-4" />
-                Export to CSV
-            </Button>
+             <div className="flex items-end gap-4">
+                <div className="flex-grow">
+                    <Label htmlFor="filter-input">Filter by Machine Name</Label>
+                    <Input
+                        id="filter-input"
+                        placeholder="Enter filter... (e.g., CORP-PC-* or /pc-\d+/i)"
+                        value={filterText}
+                        onChange={e => setFilterText(e.target.value)}
+                        className={cn(regexError && "border-destructive focus-visible:ring-destructive")}
+                    />
+                     {regexError && (
+                        <p className="mt-1 text-xs text-destructive">{regexError}</p>
+                    )}
+                </div>
+                <div className="flex items-center space-x-2 pb-2">
+                    <Label htmlFor="filter-mode-switch" className="text-sm font-normal">Simple</Label>
+                    <Switch
+                        id="filter-mode-switch"
+                        checked={filterMode === 'regex'}
+                        onCheckedChange={checked => setFilterMode(checked ? 'regex' : 'simple')}
+                    />
+                    <Label htmlFor="filter-mode-switch" className="text-sm font-normal">Regex</Label>
+                </div>
+            </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -124,7 +185,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
             </TableHeader>
             <TableBody>
               <TooltipProvider>
-                {results.consolidatedView.map(record => {
+                {filteredRecords.map(record => {
                     const isDisappeared = isTrulyDisappeared(record.lastSeen, thresholdDays);
                     return (
                         <TableRow key={record.computerName} className={cn(isDisappeared && 'bg-accent/10')}>
