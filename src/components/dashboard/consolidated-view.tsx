@@ -56,10 +56,13 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
     let regex: RegExp;
     try {
       if (filterMode === 'simple') {
-        const pattern = filterText
-          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
-          .replace(/\\\*/g, '.*') // Convert * to .*
-          .replace(/\\\?/g, '.'); // Convert ? to .
+        const pattern =
+          '^' +
+          filterText
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
+            .replace(/\\\*/g, '.*') // Convert * to .*
+            .replace(/\\\?/g, '.') + // Convert ? to .
+          '$';
         regex = new RegExp(pattern, 'i'); // Case-insensitive
       } else {
         regex = new RegExp(filterText, 'i');
@@ -144,7 +147,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                     <Label htmlFor="filter-input">Filter by Machine Name</Label>
                     <Input
                         id="filter-input"
-                        placeholder="Enter filter... (e.g., CORP-PC-* or /pc-\d+/i)"
+                        placeholder="Enter filter... (e.g., CORP-PC-* or /pc-\\d+/i)"
                         value={filterText}
                         onChange={e => setFilterText(e.target.value)}
                         className={cn(regexError && "border-destructive focus-visible:ring-destructive")}
