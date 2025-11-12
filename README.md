@@ -8,8 +8,8 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
+- **Intelligent Date Format Detection**: The application automatically analyzes your date columns and suggests the correct format, saving you time and preventing parsing errors. You can still manually adjust the format if needed.
 - **Flexible Data Configuration**: For each uploaded file, you can map which columns correspond to the `Computer Name` and the `Last Seen Date`.
-- **Advanced Date Parsing**: Specify the exact date format for each file (e.g., `MM/dd/yyyy`, `dd-MM-yy HH:mm`) to handle ambiguous date strings correctly.
 - **Configurable Heuristics**:
   - **Disappearance Threshold**: Easily set the number of days a machine must be inactive across all systems to be flagged as "disappeared".
   - **Case-Sensitive Analysis**: Choose whether machine name comparisons should be case-sensitive or case-insensitive.
@@ -17,6 +17,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
+- **CSV Export**: Download the complete "Consolidated Machine View" as a CSV file for offline analysis and reporting.
 
 ## How to Use the Application
 
@@ -53,14 +54,13 @@ A green background on the file card indicates it's configured and ready.
 
 #### **Important: Configuring Date Formats**
 
-If you've selected a "Last Seen" column, a **Date Format** input will appear. You must specify the format of your date string here to ensure it's read correctly.
+If you've selected a "Last Seen" column, a **Date Format** input will appear. The application will automatically analyze a sample of your data and suggest the most likely date format.
 
-- **Match the Format Exactly**: The format string must account for all parts of the date and time in your data.
-  - For a date like `10/15/2023 10:30`, the format is `MM/dd/yyyy HH:mm`. Note `MM` (uppercase) is for month and `mm` (lowercase) is for minutes.
-  - For `15-Oct-23`, the format is `dd-MMM-yy`.
-- **Handling Literal Characters**: If your date string contains letters that are not part of a format code (like the `T` in `2023-10-15T10:30:00`), you must wrap them in single quotes.
-  - For `2023-10-15T10:30:00`, the correct format is `yyyy-MM-dd'T'HH:mm:ss`.
-- **Leaving it Blank**: If you leave the format field blank, the analyzer will attempt to parse standard formats like `2023-11-15T10:00:00Z`. It is **highly recommended** to provide the format to avoid ambiguity and ensure accuracy.
+- **Verify the Auto-Detected Format**: Check that the suggested format correctly matches the dates in your file preview.
+- **Manual Adjustment**: If the guess is incorrect, or for very unusual formats, you can manually edit the format string.
+  - **Match the Format Exactly**: The format string must account for all parts of the date and time. For example, for a date like `10/15/2023 10:30`, the format is `MM/dd/yyyy HH:mm`. Note that `MM` (uppercase) is for month and `mm` (lowercase) is for minutes.
+  - **Handling Literal Characters**: If your date string contains letters that are not part of a format code (like the `T` in `2023-10-15T10:30:00`), you must wrap them in single quotes. The correct format for `2023-10-15T10:30:00` is `yyyy-MM-dd'T'HH:mm:ss`.
+- **Standard ISO Formats**: If your dates are in a standard ISO 8601 format (e.g., `2023-11-15T10:00:00Z`), you can often leave the format field blank, as the analyzer will parse them automatically.
 
 ### 4. Step 3: Run Analysis
 
@@ -71,11 +71,15 @@ Once you have at least one file configured, the "Run Analysis" button will becom
 After the analysis is complete, you will see a detailed breakdown:
 
 - **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines" based on your configured settings.
-- **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
-  - **Machine Name**: The name of the computer.
-  - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files.
+- **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files. You can export this view to CSV using the button at the top of the card.
+  - **Machine Name**: The name of the computer. An orange background on the row indicates the machine is "truly disappeared."
+  - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed as `dd Month yyyy`.
   - **Last Seen Source**: The name of the file where the latest sighting occurred.
-  - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates if the machine is present in that file and whether the record is "stale" (older than the disappearance threshold), up-to-date, or present without date info. Hover over the icons for a precise last-seen date from that source.
+  - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates the machine's status in that file:
+    - <span style="color:green;">✔</span> **Green Check**: Present and the record is not stale.
+    - <span style="color:orange;">✔</span> **Amber Check**: Present, but the record is "stale" (older than the disappearance threshold).
+    - <span style="color:grey;">?</span> **Grey Question Mark**: Present in the file, but no date information was provided.
+    - <span style="color:red;">✖</span> **Red X**: Not present in the file.
 - **Cross-System Discrepancies**: This is a collapsed section that you can expand. It shows a pairwise comparison between your files, highlighting machines that exist in one file but are missing in the other.
 
 ### 6. Adjust Settings
@@ -84,3 +88,4 @@ Navigate to the **Settings** page from the sidebar to fine-tune the analysis heu
 
 - **Disappeared Machine Threshold (Days)**: Change the number of days of inactivity before a machine is flagged as "disappeared".
 - **Case-Sensitive Analysis**: Toggle whether machine names like "PC-01" and "pc-01" are treated as the same device.
+```
