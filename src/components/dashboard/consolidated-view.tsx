@@ -27,6 +27,10 @@ function isTrulyDisappeared(date: Date | null, thresholdDays: number): boolean {
     return date < threshold;
 }
 
+function isPresentWithoutDate(date: Date | undefined): boolean {
+    return !!date && date.getTime() === 0;
+}
+
 
 export function ConsolidatedView({ results, fileNames, settings }: { results: AnalysisResults; fileNames: string[], settings: Settings }) {
   
@@ -123,7 +127,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                 {results.consolidatedView.map(record => {
                     const isDisappeared = isTrulyDisappeared(record.lastSeen, thresholdDays);
                     return (
-                        <TableRow key={record.computerName} className={cn(isDisappeared && 'bg-accent/50')}>
+                        <TableRow key={record.computerName} className={cn(isDisappeared && 'bg-accent/10')}>
                             <TableCell className="font-code font-medium">
                                 <div className="flex items-center gap-2">
                                    {isDisappeared && <Badge variant="destructive">Disappeared</Badge>}
@@ -136,19 +140,24 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                             <TableCell className="font-code text-xs">{record.lastSeenSource}</TableCell>
                             {fileNames.map(name => {
                                 const sourceDate = record.sources[name];
+                                const presentNoDate = isPresentWithoutDate(sourceDate);
                                 return (
                                 <TableCell key={name} className="text-center">
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                              <div className="flex justify-center">
-                                                {sourceDate ? (
-                                                     <div className={cn("flex items-center justify-center size-5 rounded-full", isStale(sourceDate, thresholdDays) ? "bg-amber-500" : "bg-green-500")}>
-                                                        <Check className="size-3 text-white"/>
-                                                     </div>
-                                                ) : (
+                                                {!sourceDate ? (
                                                     <div className="flex items-center justify-center size-5 rounded-full bg-red-500">
                                                         <X className="size-3 text-white"/>
                                                     </div>
+                                                ) : presentNoDate ? (
+                                                    <div className="flex items-center justify-center size-5 rounded-full bg-slate-400">
+                                                        <HelpCircle className="size-3 text-white"/>
+                                                    </div>
+                                                ) : (
+                                                     <div className={cn("flex items-center justify-center size-5 rounded-full", isStale(sourceDate, thresholdDays) ? "bg-amber-500" : "bg-green-500")}>
+                                                        <Check className="size-3 text-white"/>
+                                                     </div>
                                                 )}
                                              </div>
                                         </TooltipTrigger>
