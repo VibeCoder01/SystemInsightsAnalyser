@@ -22,41 +22,6 @@ export function parseFileContent(content: string): { headers: string[]; data: Re
   return { headers, data };
 }
 
-/**
- * Proactively corrects common user errors in date format strings.
- * Specifically, it finds 'mm' that should likely be 'MM' (month) and corrects it.
- * This is a heuristic and might not cover all edge cases, but handles the most common one.
- * @param format - The user-provided date format string.
- * @returns A sanitized format string.
- */
-function sanitizeDateFormat(format: string): string {
-    // If the format contains 'mm' and also time components like 'HH', 'hh', 'ss',
-    // it's likely one of the 'mm' is meant to be a month.
-    // A simple heuristic: if 'mm' appears before 'dd' or 'yyyy', it's probably the month.
-    const monthFirstRegex = /^(.*?)mm([/.-])dd([/.-])yyyy(.*?)$/i;
-    const dayFirstRegex = /^(.*?)dd([/.-])mm([/.-])yyyy(.*?)$/i;
-    
-    if (monthFirstRegex.test(format)) {
-        return format.replace(monthFirstRegex, '$1MM$2dd$3yyyy$4');
-    }
-    if (dayFirstRegex.test(format)) {
-        return format.replace(dayFirstRegex, '$1dd$2MM$3yyyy$4');
-    }
-
-    // A more general-purpose replacement if the format is ambiguous but contains 'mm' twice.
-    // This is risky, so we stick to the more common patterns above.
-    // A simple but effective check is to replace only the first occurrence of 'mm' if 'dd' is also present.
-    if (format.includes('dd') && format.indexOf('mm') < format.indexOf('dd')) {
-        return format.replace('mm', 'MM');
-    }
-    if (format.includes('yyyy') && format.indexOf('mm') < format.indexOf('yyyy')) {
-        return format.replace('mm', 'MM');
-    }
-
-    // Default: return the original format if it doesn't match common error patterns.
-    return format;
-}
-
 function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRecord[] {
     if (!file.mappings.computerName) return [];
 
@@ -66,7 +31,6 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
         let computerName = computerNameRaw;
         let domain: string | undefined = undefined;
 
-        // Handle domain\computer format
         if (computerNameRaw.includes('\\')) {
             const parts = computerNameRaw.split('\\');
             if (parts.length > 1) {
@@ -74,7 +38,6 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
                 computerName = parts.join('\\');
             }
         } 
-        // Handle FQDN computer.domain.com format
         else if (computerNameRaw.includes('.')) {
             const domainParts = computerNameRaw.split('.');
             if (domainParts.length > 1) {
@@ -83,7 +46,6 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             }
         }
 
-        // Remove leading/trailing slashes from computer name
         computerName = computerName.replace(/^\/|\/$/g, '');
         
         computerName = settings.caseSensitive ? computerName : computerName.toLowerCase();
@@ -97,14 +59,15 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             if (dateStr) {
                 let parsedDate;
                 if (file.mappings.lastSeenFormat) {
-                    const sanitizedFormat = sanitizeDateFormat(file.mappings.lastSeenFormat);
                     try {
-                        parsedDate = parse(dateStr, sanitizedFormat, new Date());
+                        // Use date-fns/parse with the user-provided format
+                        parsedDate = parse(dateStr, file.mappings.lastSeenFormat, new Date());
                     } catch (e) {
-                        console.error(`Error parsing date "${dateStr}" with format "${sanitizedFormat}" (original: "${file.mappings.lastSeenFormat}") in file "${file.fileName}".`, e);
-                        parsedDate = new Date('invalid');
+                        console.error(`Error parsing date "${dateStr}" with format "${file.mappings.lastSeenFormat}" in file "${file.fileName}".`, e);
+                        parsedDate = new Date('invalid'); // Ensure it's an invalid date
                     }
                 } else {
+                    // Fallback for ISO or other standard formats that new Date() can handle
                     parsedDate = new Date(dateStr);
                 }
 
@@ -159,7 +122,6 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         });
     });
     
-    // Sort by last seen date, descending (most recent first)
     consolidatedRecords.sort((a, b) => {
         if (a.lastSeen && b.lastSeen) return b.lastSeen.getTime() - a.lastSeen.getTime();
         if (a.lastSeen) return -1;
@@ -177,13 +139,12 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
     return { crossComparisons: [], disappearedMachines: [], consolidatedView: [], trulyDisappearedCount: 0 };
   }
   
-  // Ensure records are created with latest mappings and settings
   configuredFiles.forEach(file => {
       try {
         file.records = createComputerRecords(file, settings);
       } catch (error) {
         console.error(`Failed to process records for file: ${file.fileName}`, error);
-        file.records = []; // Clear records on failure to prevent cascading issues
+        file.records = []; 
       }
   });
   

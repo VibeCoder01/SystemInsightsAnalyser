@@ -1,6 +1,7 @@
+
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { ParsedFile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '../ui/input';
 import Link from 'next/link';
+import { guessDateFormat } from '@/lib/date-guesser';
 
 interface FileConfigDialogProps {
   file: ParsedFile | null;
@@ -25,10 +27,30 @@ interface FileConfigDialogProps {
   onSave: (updatedFile: ParsedFile) => void;
 }
 
+const SAMPLE_SIZE = 20; // Number of rows to use for date guessing
+
 export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDialogProps) {
   const [computerNameCol, setComputerNameCol] = useState<string | null>(null);
   const [lastSeenCol, setLastSeenCol] = useState<string | null>(null);
   const [lastSeenFormat, setLastSeenFormat] = useState<string | null>('');
+
+  // Auto-guess date format when lastSeenCol changes
+  const guessedFormat = useMemo(() => {
+    if (!file || !lastSeenCol || lastSeenCol === 'none') {
+      return null;
+    }
+    const samples = file.data
+      .map(row => row[lastSeenCol])
+      .filter(Boolean) // Filter out empty/null/undefined values
+      .slice(0, SAMPLE_SIZE);
+    
+    if (samples.length === 0) {
+      return null;
+    }
+
+    const result = guessDateFormat(samples);
+    return result.format;
+  }, [file, lastSeenCol]);
 
 
   useEffect(() => {
@@ -38,6 +60,19 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
       setLastSeenFormat(file.mappings.lastSeenFormat || '');
     }
   }, [file]);
+
+  // When the guessed format is available, update the state, but only if user hasn't typed
+  useEffect(() => {
+    if (guessedFormat) {
+      setLastSeenFormat(guessedFormat);
+    }
+  }, [guessedFormat]);
+  
+  // When user selects a new date column, reset the format and let the guesser run
+  const handleLastSeenChange = (value: string) => {
+    setLastSeenCol(value);
+    setLastSeenFormat(''); // Reset format to allow new guess to populate
+  }
 
   const handleSave = () => {
     if (file && computerNameCol) {
@@ -85,7 +120,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
             </div>
             <div>
               <Label htmlFor="last-seen-col">Last Seen Column (Optional)</Label>
-              <Select value={lastSeenCol || 'none'} onValueChange={setLastSeenCol}>
+              <Select value={lastSeenCol || 'none'} onValueChange={handleLastSeenChange}>
                 <SelectTrigger id="last-seen-col">
                   <SelectValue placeholder="Select a column" />
                 </SelectTrigger>
@@ -100,7 +135,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
             </div>
              {showDateFormatInput && (
               <div>
-                <Label htmlFor="date-format-str">Date Format</Label>
+                <Label htmlFor="date-format-str">Date Format (Auto-detected)</Label>
                 <Input
                   id="date-format-str"
                   value={lastSeenFormat || ''}
@@ -108,13 +143,13 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                   placeholder="e.g., dd/MM/yyyy HH:mm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Specify how to read the date. Note `MM` is month, `mm` is minutes.{' '}
+                  The app tried to guess the format. Please verify it is correct. Note: `MM` is month, `mm` is minutes.{' '}
                   <Link href="https://date-fns.org/v2.16.1/docs/format" target="_blank" rel="noopener noreferrer" className="underline">
                     View format tokens
                   </Link>.
                 </p>
                  <p className="text-xs text-muted-foreground mt-1">
-                    If left blank, it will try standard ISO format like `YYYY-MM-DDTHH:mm:ssZ`. For a literal 'T', use single quotes: `yyyy-MM-dd'T'HH:mm:ss`.
+                    For literal characters like 'T', use single quotes: `yyyy-MM-dd'T'HH:mm:ss`. Standard ISO formats are often detected automatically if left blank.
                 </p>
               </div>
             )}
