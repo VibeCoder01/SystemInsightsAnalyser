@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { CheckCircle, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { format } from 'date-fns';
 
 interface ResultTableProps {
   records: ComputerRecord[];
@@ -35,7 +36,7 @@ function ResultTable({ records }: ResultTableProps) {
                         <TableRow key={`${record.computerName}-${index}`}>
                             {headers.map(h => (
                                 <TableCell key={h} className="font-code text-xs">
-                                    {h === 'lastSeen' && record.lastSeen ? new Date(record.lastSeen).toLocaleDateString() : String(record[h] ?? '')}
+                                    {h === 'lastSeen' && record.lastSeen ? format(new Date(record.lastSeen), 'd LLLL yyyy') : String(record[h] ?? '')}
                                 </TableCell>
                             ))}
                         </TableRow>

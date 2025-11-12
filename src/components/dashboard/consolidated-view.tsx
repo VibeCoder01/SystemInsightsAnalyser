@@ -10,6 +10,7 @@ import { Check, HelpCircle, X, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+import { format } from 'date-fns';
 
 function isStale(date: Date | undefined, thresholdDays: number): boolean {
     if (!date) return false; // Not stale if we don't have a date
@@ -43,7 +44,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
     if (date.getTime() === 0) {
       return `Present in ${fileName} (No date info)`;
     }
-    let content = `Last seen in ${fileName} on ${date.toLocaleDateString()}`;
+    let content = `Last seen in ${fileName} on ${format(date, 'd LLLL yyyy')}`;
     if (isStale(date, thresholdDays)) {
       content += '\n(This record is stale)';
     }
@@ -130,7 +131,7 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                                 </div>
                             </TableCell>
                             <TableCell className="text-center">
-                                {record.lastSeen ? new Date(record.lastSeen).toLocaleDateString() : 'Never'}
+                                {record.lastSeen ? format(new Date(record.lastSeen), 'd LLLL yyyy') : 'Never'}
                             </TableCell>
                             <TableCell className="font-code text-xs">{record.lastSeenSource}</TableCell>
                             {fileNames.map(name => {
