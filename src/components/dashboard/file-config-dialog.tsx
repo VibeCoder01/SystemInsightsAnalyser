@@ -157,7 +157,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
           <div className="space-y-2">
             <Label>File Preview</Label>
             <ScrollArea className="h-64 rounded-md border">
-               <div className="relative w-full overflow-auto">
+              <div className="relative min-w-max">
                 <Table>
                   <TableHeader className="sticky top-0 bg-card">
                     <TableRow>
