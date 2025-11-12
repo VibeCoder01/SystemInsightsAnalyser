@@ -1,3 +1,4 @@
+
 "use client"
 
 import React, { useState, useCallback } from 'react';
@@ -53,7 +54,7 @@ export function FileUpload({ onFilesAdded, className }: FileUploadProps) {
   return (
     <div
       className={cn(
-        "relative flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card p-8 text-center transition-colors duration-200",
+        "relative flex w-full flex-col md:flex-row items-center justify-center gap-4 rounded-lg border-2 border-dashed border-border bg-card p-6 text-center transition-colors duration-200",
         isDragOver && "border-primary bg-primary/10",
         className
       )}
@@ -62,12 +63,13 @@ export function FileUpload({ onFilesAdded, className }: FileUploadProps) {
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
     >
-      <UploadCloud className="mb-4 h-12 w-12 text-muted-foreground" />
-      <h3 className="text-lg font-semibold text-card-foreground">Drag & Drop files here</h3>
-      <p className="mt-1 text-sm text-muted-foreground">or</p>
+      <UploadCloud className="size-8 text-muted-foreground" />
+      <div className="flex flex-col md:flex-row items-center gap-2">
+        <h3 className="text-base font-semibold text-card-foreground">Drag & Drop files here</h3>
+        <p className="text-sm text-muted-foreground">or</p>
+      </div>
       <Button
         variant="outline"
-        className="mt-4"
         onClick={() => fileInputRef.current?.click()}
       >
         Browse Files
