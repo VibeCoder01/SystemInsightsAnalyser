@@ -25,6 +25,7 @@ For each management system (e.g., AD, SCCM), export a report containing at least
 
 - **Format**: The file should be a comma-separated value (`.csv`) or plain text (`.txt`) file.
 - **Header**: The first line of the file must be a header row containing the column names (e.g., `ComputerName,LastLogonDate`).
+- **Date Format (Important!)**: To ensure dates are parsed correctly, it is **strongly recommended** to use the ISO 8601 format (`YYYY-MM-DDTHH:mm:ssZ`). Ambiguous formats like `MM/DD/YYYY` or `DD/MM/YYYY` can be misinterpreted by your browser depending on its local settings.
 
 **Example `ad_export.csv`:**
 ```csv
@@ -48,7 +49,7 @@ For each file you've uploaded, you need to tell the analyzer how to interpret it
 - A preview of your data is shown to help you make the correct selections.
 - Click **"Save Configuration"**.
 
-A green checkmark will appear on the file card once it's configured.
+A green background on the file card indicates it's configured and ready.
 
 ### 4. Step 3: Run Analysis
 
