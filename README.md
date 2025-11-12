@@ -9,6 +9,8 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
 - **Intelligent Date Format Detection**: The application automatically analyzes your date columns and suggests the correct format, saving you time and preventing parsing errors. You can still manually adjust the format if needed.
+- **Flexible Filtering (Wildcards & Regex)**: Filter the main results view with simple wildcards (`*` and `?`) or powerful regular expressions to quickly find specific machines.
+- **Contextual Analysis Summary**: The "disappeared machines" count dynamically updates to show you how many machines in your filtered results match the criteria.
 - **Flexible Data Configuration**: For each uploaded file, you can map which columns correspond to the `Computer Name` and the `Last Seen Date`.
 - **Configurable Heuristics**:
   - **Disappearance Threshold**: Easily set the number of days a machine must be inactive across all systems to be flagged as "disappeared".
@@ -17,7 +19,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
-- **CSV Export**: Download the complete "Consolidated Machine View" as a CSV file for offline analysis and reporting.
+- **CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file for offline analysis and reporting.
 
 ## How to Use the Application
 
@@ -70,9 +72,11 @@ Once you have at least one file configured, the "Run Analysis" button will becom
 
 After the analysis is complete, you will see a detailed breakdown:
 
-- **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines" based on your configured settings.
-- **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files. You can export this view to CSV using the button at the top of the card.
-  - **Machine Name**: The name of the computer. An orange background on the row indicates the machine is "truly disappeared."
+- **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines". If you are filtering the results below, this card will also show a count of disappeared machines *within your filtered view*.
+- **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
+  - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering.
+  - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card.
+  - **Machine Name**: The name of the computer. A row with an orange background indicates the machine is "truly disappeared."
   - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed as `dd Month yyyy`.
   - **Last Seen Source**: The name of the file where the latest sighting occurred.
   - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates the machine's status in that file:
@@ -88,4 +92,3 @@ Navigate to the **Settings** page from the sidebar to fine-tune the analysis heu
 
 - **Disappeared Machine Threshold (Days)**: Change the number of days of inactivity before a machine is flagged as "disappeared".
 - **Case-Sensitive Analysis**: Toggle whether machine names like "PC-01" and "pc-01" are treated as the same device.
-```
