@@ -56,7 +56,7 @@ A green background on the file card indicates it's configured and ready.
 If you've selected a "Last Seen" column, a **Date Format** input will appear. You must specify the format of your date string here to ensure it's read correctly.
 
 - **Match the Format Exactly**: The format string must account for all parts of the date and time in your data.
-  - For a date like `10/15/2023 10:30`, the format is `MM/dd/yyyy HH:mm`.
+  - For a date like `10/15/2023 10:30`, the format is `MM/dd/yyyy HH:mm`. Note `MM` (uppercase) is for month and `mm` (lowercase) is for minutes.
   - For `15-Oct-23`, the format is `dd-MMM-yy`.
 - **Handling Literal Characters**: If your date string contains letters that are not part of a format code (like the `T` in `2023-10-15T10:30:00`), you must wrap them in single quotes.
   - For `2023-10-15T10:30:00`, the correct format is `yyyy-MM-dd'T'HH:mm:ss`.
