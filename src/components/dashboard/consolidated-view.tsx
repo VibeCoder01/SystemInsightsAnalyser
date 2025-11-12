@@ -43,13 +43,22 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
       <CardContent>
         <ScrollArea className="h-[600px]">
           <Table>
-            <TableHeader className="sticky top-0 bg-card z-10">
-              <TableRow>
-                <TableHead className="w-[200px] font-code">Machine Name</TableHead>
-                <TableHead className="text-center">Last Seen (Any)</TableHead>
-                <TableHead>Last Seen Source</TableHead>
+            <TableHeader>
+              <TableRow className="bg-card [&>th]:bg-card">
+                <TableHead className="sticky top-0 z-20 w-[200px] bg-card font-code">
+                  Machine Name
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-card text-center">
+                  Last Seen (Any)
+                </TableHead>
+                <TableHead className="sticky top-0 z-20 bg-card">
+                  Last Seen Source
+                </TableHead>
                 {fileNames.map(name => (
-                  <TableHead key={name} className="font-code text-center">
+                  <TableHead
+                    key={name}
+                    className="sticky top-0 z-20 bg-card font-code text-center"
+                  >
                     {name}
                   </TableHead>
                 ))}
