@@ -60,13 +60,13 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
     
     const csvRows = results.consolidatedView.map(record => {
       const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
-      const lastSeen = record.lastSeen ? `"${record.lastSeen.toISOString()}"` : '""';
+      const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
       const lastSeenSource = record.lastSeenSource ? `"${record.lastSeenSource}"` : '""';
       
       const sourceDates = fileNames.map(name => {
         const date = record.sources[name];
         if (date && date.getTime() > 0) {
-            return `"${date.toISOString()}"`;
+            return `"${format(date, 'd LLLL yyyy')}"`;
         } else if (date) { // Present but no date
             return '"Present"';
         }

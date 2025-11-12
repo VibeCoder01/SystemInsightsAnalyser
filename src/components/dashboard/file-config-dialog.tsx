@@ -105,7 +105,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                   id="date-format-str"
                   value={lastSeenFormat || ''}
                   onChange={(e) => setLastSeenFormat(e.target.value)}
-                  placeholder="e.g., MM/dd/yyyy or dd-MM-yy HH:mm"
+                  placeholder="e.g., dd/MM/yyyy HH:mm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Specify how to read the date. Note `MM` is month, `mm` is minutes.{' '}

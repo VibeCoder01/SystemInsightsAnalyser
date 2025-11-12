@@ -22,6 +22,41 @@ export function parseFileContent(content: string): { headers: string[]; data: Re
   return { headers, data };
 }
 
+/**
+ * Proactively corrects common user errors in date format strings.
+ * Specifically, it finds 'mm' that should likely be 'MM' (month) and corrects it.
+ * This is a heuristic and might not cover all edge cases, but handles the most common one.
+ * @param format - The user-provided date format string.
+ * @returns A sanitized format string.
+ */
+function sanitizeDateFormat(format: string): string {
+    // If the format contains 'mm' and also time components like 'HH', 'hh', 'ss',
+    // it's likely one of the 'mm' is meant to be a month.
+    // A simple heuristic: if 'mm' appears before 'dd' or 'yyyy', it's probably the month.
+    const monthFirstRegex = /^(.*?)mm([/.-])dd([/.-])yyyy(.*?)$/i;
+    const dayFirstRegex = /^(.*?)dd([/.-])mm([/.-])yyyy(.*?)$/i;
+    
+    if (monthFirstRegex.test(format)) {
+        return format.replace(monthFirstRegex, '$1MM$2dd$3yyyy$4');
+    }
+    if (dayFirstRegex.test(format)) {
+        return format.replace(dayFirstRegex, '$1dd$2MM$3yyyy$4');
+    }
+
+    // A more general-purpose replacement if the format is ambiguous but contains 'mm' twice.
+    // This is risky, so we stick to the more common patterns above.
+    // A simple but effective check is to replace only the first occurrence of 'mm' if 'dd' is also present.
+    if (format.includes('dd') && format.indexOf('mm') < format.indexOf('dd')) {
+        return format.replace('mm', 'MM');
+    }
+    if (format.includes('yyyy') && format.indexOf('mm') < format.indexOf('yyyy')) {
+        return format.replace('mm', 'MM');
+    }
+
+    // Default: return the original format if it doesn't match common error patterns.
+    return format;
+}
+
 function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRecord[] {
     if (!file.mappings.computerName) return [];
 
@@ -62,15 +97,14 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             if (dateStr) {
                 let parsedDate;
                 if (file.mappings.lastSeenFormat) {
-                    // Use date-fns/parse with the user-provided format
+                    const sanitizedFormat = sanitizeDateFormat(file.mappings.lastSeenFormat);
                     try {
-                        parsedDate = parse(dateStr, file.mappings.lastSeenFormat, new Date());
+                        parsedDate = parse(dateStr, sanitizedFormat, new Date());
                     } catch (e) {
-                        console.error(`Error parsing date "${dateStr}" with format "${file.mappings.lastSeenFormat}" in file "${file.fileName}".`, e);
-                        parsedDate = new Date('invalid'); // Ensure it's an invalid date
+                        console.error(`Error parsing date "${dateStr}" with format "${sanitizedFormat}" (original: "${file.mappings.lastSeenFormat}") in file "${file.fileName}".`, e);
+                        parsedDate = new Date('invalid');
                     }
                 } else {
-                    // Fallback to default JavaScript parsing which is good at handling ISO 8601
                     parsedDate = new Date(dateStr);
                 }
 
@@ -96,6 +130,11 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         }
 
         const machine = machineMap.get(record.computerName)!;
+        
+        // Mark as present in the source file, using a placeholder if no date is available
+        if (machine.sources[record.source] === undefined) {
+             machine.sources[record.source] = record.lastSeen || new Date(0);
+        }
 
         // Update latest overall sighting
         if (record.lastSeen && (!machine.lastSeen || record.lastSeen > machine.lastSeen)) {
@@ -104,18 +143,11 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         }
 
         // Update latest sighting for this specific source.
-        // If a date exists, use it. If not, but we know the machine is in the file, we can't leave it undefined.
-        // A machine record existing means it's present. Use its date, or if it has no date, use a placeholder.
-        // The presence of a key in `sources` is what determines the checkmark.
         const existingDate = machine.sources[record.source];
         if (record.lastSeen) {
              if (!existingDate || existingDate.getTime() === 0 || record.lastSeen > existingDate) {
                 machine.sources[record.source] = record.lastSeen;
             }
-        } else if (existingDate === undefined) {
-             // Mark as present even without a date. Use a sentinel date that won't be considered "stale" or "latest".
-             // Using epoch date to signify presence without a valid timestamp. The UI component will just see a truthy value.
-             machine.sources[record.source] = new Date(0);
         }
     });
 
@@ -132,7 +164,7 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         if (a.lastSeen && b.lastSeen) return b.lastSeen.getTime() - a.lastSeen.getTime();
         if (a.lastSeen) return -1;
         if (b.lastSeen) return 1;
-        return 0;
+        return a.computerName.localeCompare(b.computerName);
     });
 
     return consolidatedRecords;
@@ -147,7 +179,12 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
   
   // Ensure records are created with latest mappings and settings
   configuredFiles.forEach(file => {
-      file.records = createComputerRecords(file, settings);
+      try {
+        file.records = createComputerRecords(file, settings);
+      } catch (error) {
+        console.error(`Failed to process records for file: ${file.fileName}`, error);
+        file.records = []; // Clear records on failure to prevent cascading issues
+      }
   });
   
   const allRecords: ComputerRecord[] = configuredFiles.flatMap(f => f.records);
@@ -181,7 +218,7 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
   const thresholdDate = new Date();
   thresholdDate.setDate(thresholdDate.getDate() - settings.disappearanceThresholdDays);
   
-  const trulyDisappearedMachines = consolidatedView.filter(record => record.lastSeen && record.lastSeen < thresholdDate);
+  const trulyDisappearedMachines = consolidatedView.filter(record => !record.lastSeen || record.lastSeen < thresholdDate);
 
 
   return { crossComparisons, disappearedMachines: [], consolidatedView, trulyDisappearedCount: trulyDisappearedMachines.length };

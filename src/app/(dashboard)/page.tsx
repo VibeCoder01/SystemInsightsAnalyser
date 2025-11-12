@@ -10,7 +10,7 @@ import { FileUpload } from '@/components/dashboard/file-upload';
 import { FileConfigDialog } from '@/components/dashboard/file-config-dialog';
 import { AnalysisResults as AnalysisResultsDisplay } from '@/components/dashboard/analysis-results';
 import { ConsolidatedView } from '@/components/dashboard/consolidated-view';
-import { CheckCircle, FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
