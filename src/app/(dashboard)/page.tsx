@@ -36,7 +36,7 @@ export default function DashboardPage() {
             fileName: file.name,
             headers,
             data,
-            mappings: { computerName: null, lastSeen: null },
+            mappings: { computerName: null, lastSeen: null, lastSeenFormat: null },
             isConfigured: false,
             records: [],
           },

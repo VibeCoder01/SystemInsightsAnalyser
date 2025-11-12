@@ -1,3 +1,4 @@
+import { parse } from 'date-fns';
 import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord } from './types';
 
 export function parseFileContent(content: string): { headers: string[]; data: Record<string, string>[] } {
@@ -56,10 +57,18 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
         }
 
         let lastSeen: Date | undefined = undefined;
-        if (file.mappings.lastSeen) {
+        if (file.mappings.lastSeen && file.mappings.lastSeen !== 'none') {
             const dateStr = row[file.mappings.lastSeen];
             if (dateStr) {
-                const parsedDate = new Date(dateStr);
+                let parsedDate;
+                if (file.mappings.lastSeenFormat) {
+                    // Use date-fns/parse with the user-provided format
+                    parsedDate = parse(dateStr, file.mappings.lastSeenFormat, new Date());
+                } else {
+                    // Fallback to default JavaScript parsing
+                    parsedDate = new Date(dateStr);
+                }
+
                 if (!isNaN(parsedDate.getTime())) {
                     lastSeen = parsedDate;
                 }
@@ -95,7 +104,7 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         // The presence of a key in `sources` is what determines the checkmark.
         const existingDate = machine.sources[record.source];
         if (record.lastSeen) {
-             if (!existingDate || record.lastSeen > existingDate) {
+             if (!existingDate || existingDate.getTime() === 0 || record.lastSeen > existingDate) {
                 machine.sources[record.source] = record.lastSeen;
             }
         } else if (existingDate === undefined) {

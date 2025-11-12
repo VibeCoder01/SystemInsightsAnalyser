@@ -9,6 +9,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
 - **Flexible Data Configuration**: For each uploaded file, you can map which columns correspond to the `Computer Name` and the `Last Seen Date`.
+- **Advanced Date Parsing**: Specify the exact date format for each file (e.g., `MM/dd/yyyy`, `dd-MM-yy HH:mm`) to handle ambiguous date strings correctly.
 - **Configurable Heuristics**:
   - **Disappearance Threshold**: Easily set the number of days a machine must be inactive across all systems to be flagged as "disappeared".
   - **Case-Sensitive Analysis**: Choose whether machine name comparisons should be case-sensitive or case-insensitive.
@@ -25,14 +26,13 @@ For each management system (e.g., AD, SCCM), export a report containing at least
 
 - **Format**: The file should be a comma-separated value (`.csv`) or plain text (`.txt`) file.
 - **Header**: The first line of the file must be a header row containing the column names (e.g., `ComputerName,LastLogonDate`).
-- **Date Format (Important!)**: To ensure dates are parsed correctly, it is **strongly recommended** to use the ISO 8601 format (`YYYY-MM-DDTHH:mm:ssZ`). Ambiguous formats like `MM/DD/YYYY` or `DD/MM/YYYY` can be misinterpreted by your browser depending on its local settings.
 
 **Example `ad_export.csv`:**
 ```csv
 Name,LastSeen
-CORP-PC-01,2023-10-15T10:00:00Z
-SALES-LAPTOP-05,2023-11-01T12:30:00Z
-DEV-MACHINE,2023-11-02T09:00:00Z
+CORP-PC-01,10/15/2023
+SALES-LAPTOP-05,11/01/2023
+DEV-MACHINE,02/11/2023
 ```
 
 ### 2. Step 1: Upload Files
@@ -45,7 +45,11 @@ For each file you've uploaded, you need to tell the analyzer how to interpret it
 
 - Click the **"Configure"** button on a file card.
 - In the dialog, select the column from your file that contains the **Computer Name**. This is required.
-- Select the column that contains the **Last Seen Date**. This is optional but highly recommended for the "disappeared machines" feature to work. If no date column is available, select "None".
+- Select the column that contains the **Last Seen Date**. This is optional. If no date column is available, select "None".
+- **(Important for Dates)** If you've selected a Last Seen column, a **Date Format** input will appear. You must specify the format of your date string here.
+  - For `10/15/2023`, you would enter `MM/dd/yyyy`.
+  - For `15-Oct-23 10:00`, you would enter `dd-MMM-yy HH:mm`.
+  - If you leave this field blank, the app will try to parse standard ISO formats like `2023-10-15T10:00:00Z`. It is highly recommended to provide the format to avoid ambiguity.
 - A preview of your data is shown to help you make the correct selections.
 - Click **"Save Configuration"**.
 
@@ -64,7 +68,7 @@ After the analysis is complete, you will see a detailed breakdown:
   - **Machine Name**: The name of the computer.
   - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files.
   - **Last Seen Source**: The name of the file where the latest sighting occurred.
-  - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates if the machine is present in that file and whether the record is "stale" (older than the disappearance threshold) or up-to-date. Hover over the icons for a precise last-seen date from that source.
+  - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates if the machine is present in that file and whether the record is "stale" (older than the disappearance threshold), up-to-date, or present without date info. Hover over the icons for a precise last-seen date from that source.
 - **Cross-System Discrepancies**: This is a collapsed section that you can expand. It shows a pairwise comparison between your files, highlighting machines that exist in one file but are missing in the other.
 
 ### 6. Adjust Settings

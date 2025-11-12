@@ -14,7 +14,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '../ui/input';
+import Link from 'next/link';
 
 interface FileConfigDialogProps {
   file: ParsedFile | null;
@@ -26,11 +28,14 @@ interface FileConfigDialogProps {
 export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDialogProps) {
   const [computerNameCol, setComputerNameCol] = useState<string | null>(null);
   const [lastSeenCol, setLastSeenCol] = useState<string | null>(null);
+  const [lastSeenFormat, setLastSeenFormat] = useState<string | null>('');
+
 
   useEffect(() => {
     if (file) {
       setComputerNameCol(file.mappings.computerName);
       setLastSeenCol(file.mappings.lastSeen);
+      setLastSeenFormat(file.mappings.lastSeenFormat || '');
     }
   }, [file]);
 
@@ -41,6 +46,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
         mappings: {
           computerName: computerNameCol,
           lastSeen: lastSeenCol,
+          lastSeenFormat: lastSeenFormat,
         },
         isConfigured: true,
       };
@@ -48,6 +54,8 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
       onClose();
     }
   };
+  
+  const showDateFormatInput = lastSeenCol && lastSeenCol !== 'none';
 
   if (!file) return null;
 
@@ -77,7 +85,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
             </div>
             <div>
               <Label htmlFor="last-seen-col">Last Seen Column (Optional)</Label>
-              <Select value={lastSeenCol || undefined} onValueChange={setLastSeenCol}>
+              <Select value={lastSeenCol || 'none'} onValueChange={setLastSeenCol}>
                 <SelectTrigger id="last-seen-col">
                   <SelectValue placeholder="Select a column" />
                 </SelectTrigger>
@@ -90,11 +98,31 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
               </Select>
                <p className="text-xs text-muted-foreground mt-1">Select 'None' if this file does not contain a 'last seen' date.</p>
             </div>
+             {showDateFormatInput && (
+              <div>
+                <Label htmlFor="date-format-str">Date Format</Label>
+                <Input
+                  id="date-format-str"
+                  value={lastSeenFormat || ''}
+                  onChange={(e) => setLastSeenFormat(e.target.value)}
+                  placeholder="e.g., MM/dd/yyyy or dd-MM-yy HH:mm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Specify how to read the date. Example: `MM/dd/yy`.{' '}
+                  <Link href="https://date-fns.org/v2.16.1/docs/format" target="_blank" rel="noopener noreferrer" className="underline">
+                    View format tokens
+                  </Link>.
+                </p>
+                 <p className="text-xs text-muted-foreground mt-1">
+                    If left blank, it will try standard ISO format like `YYYY-MM-DDTHH:mm:ssZ`.
+                </p>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>File Preview</Label>
             <ScrollArea className="h-64 rounded-md border">
-              <div className="min-w-max">
+               <div className="relative w-full overflow-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-card">
                     <TableRow>
@@ -111,7 +139,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                         {file.headers.map(header => (
                           <TableCell
                             key={header}
-                            className="font-code text-xs truncate max-w-[150px] whitespace-nowrap"
+                            className="font-code text-xs whitespace-nowrap"
                           >
                             {row[header]}
                           </TableCell>
@@ -121,7 +149,6 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                   </TableBody>
                 </Table>
               </div>
-              <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>
         </div>

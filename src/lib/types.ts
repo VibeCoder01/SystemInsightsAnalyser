@@ -22,6 +22,7 @@ export type ParsedFile = {
   mappings: {
     computerName: string | null;
     lastSeen: string | null;
+    lastSeenFormat: string | null;
   };
   isConfigured: boolean;
   records: ComputerRecord[];
