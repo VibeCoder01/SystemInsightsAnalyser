@@ -13,6 +13,7 @@ import { ConsolidatedView } from '@/components/dashboard/consolidated-view';
 import { CheckCircle, FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { cn } from '@/lib/utils';
 
 
 export default function DashboardPage() {
@@ -108,16 +109,18 @@ export default function DashboardPage() {
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   >
-                    <Card className="flex h-full flex-col">
+                    <Card className={cn(
+                        "flex h-full flex-col",
+                        file.isConfigured && "bg-green-100 dark:bg-green-900/20"
+                      )}>
                       <CardHeader className="flex-row items-start gap-4 space-y-0 pb-4">
                           <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
                               <FileText className="size-5 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <CardTitle className="text-base font-medium font-code">{file.fileName}</CardTitle>
+                            <CardTitle className="text-base font-medium font-code break-words">{file.fileName}</CardTitle>
                             <CardDescription>{file.isConfigured ? 'Ready for analysis' : 'Needs configuration'}</CardDescription>
                           </div>
-                          {file.isConfigured && <CheckCircle className="size-5 text-green-500"/>}
                       </CardHeader>
                       <CardContent className="flex-grow justify-end flex flex-col">
                         <div className="flex gap-2 mt-auto">
