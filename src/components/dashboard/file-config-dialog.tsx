@@ -108,7 +108,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                   placeholder="e.g., MM/dd/yyyy or dd-MM-yy HH:mm"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Specify how to read the date. Example: `MM/dd/yy`.{' '}
+                  Specify how to read the date. Note `MM` is month, `mm` is minutes.{' '}
                   <Link href="https://date-fns.org/v2.16.1/docs/format" target="_blank" rel="noopener noreferrer" className="underline">
                     View format tokens
                   </Link>.
