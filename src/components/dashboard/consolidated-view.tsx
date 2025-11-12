@@ -12,6 +12,7 @@ import { Badge } from '../ui/badge';
 
 function isStale(date: Date | undefined, thresholdDays: number): boolean {
     if (!date) return false; // Not stale if we don't have a date
+    if (date.getTime() === 0) return false; // Not stale if it's our placeholder epoch date
     const threshold = new Date();
     threshold.setDate(threshold.getDate() - thresholdDays);
     return date < threshold;
@@ -32,6 +33,21 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
   }
   
   const thresholdDays = settings.disappearanceThresholdDays;
+
+  const getTooltipContent = (date: Date | undefined, fileName: string) => {
+    if (!date) {
+      return `Not present in ${fileName}`;
+    }
+    // Check for our placeholder date
+    if (date.getTime() === 0) {
+      return `Present in ${fileName} (No date info)`;
+    }
+    let content = `Last seen in ${fileName} on ${date.toLocaleDateString()}`;
+    if (isStale(date, thresholdDays)) {
+      content += '\n(This record is stale)';
+    }
+    return content;
+  };
 
   return (
     <Card>
@@ -75,13 +91,15 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                                 {record.lastSeen ? new Date(record.lastSeen).toLocaleDateString() : 'Never'}
                             </TableCell>
                             <TableCell className="font-code text-xs">{record.lastSeenSource}</TableCell>
-                            {fileNames.map(name => (
+                            {fileNames.map(name => {
+                                const sourceDate = record.sources[name];
+                                return (
                                 <TableCell key={name} className="text-center">
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                              <div className="flex justify-center">
-                                                {record.sources[name] ? (
-                                                     <div className={cn("flex items-center justify-center size-5 rounded-full", isStale(record.sources[name], thresholdDays) ? "bg-amber-500" : "bg-green-500")}>
+                                                {sourceDate ? (
+                                                     <div className={cn("flex items-center justify-center size-5 rounded-full", isStale(sourceDate, thresholdDays) ? "bg-amber-500" : "bg-green-500")}>
                                                         <Check className="size-3 text-white"/>
                                                      </div>
                                                 ) : (
@@ -91,20 +109,13 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
                                                 )}
                                              </div>
                                         </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>
-                                                {record.sources[name] 
-                                                    ? `Last seen in ${name} on ${new Date(record.sources[name]!).toLocaleDateString()}` 
-                                                    : `Not present in ${name}`
-                                                }
-                                            </p>
-                                            {record.sources[name] && isStale(record.sources[name], thresholdDays) && (
-                                                <p className="text-amber-500">This record is stale.</p>
-                                            )}
+                                        <TooltipContent className="whitespace-pre-wrap">
+                                            <p>{getTooltipContent(sourceDate, name)}</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TableCell>
-                            ))}
+                            )})
+                           }
                         </TableRow>
                     )}
                 )}

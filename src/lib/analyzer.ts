@@ -89,9 +89,19 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
             machine.lastSeenSource = record.source;
         }
 
-        // Update latest sighting for this specific source
-        if (record.lastSeen && (!machine.sources[record.source] || record.lastSeen > machine.sources[record.source]!)) {
-            machine.sources[record.source] = record.lastSeen;
+        // Update latest sighting for this specific source.
+        // If a date exists, use it. If not, but we know the machine is in the file, we can't leave it undefined.
+        // A machine record existing means it's present. Use its date, or if it has no date, use a placeholder.
+        // The presence of a key in `sources` is what determines the checkmark.
+        const existingDate = machine.sources[record.source];
+        if (record.lastSeen) {
+             if (!existingDate || record.lastSeen > existingDate) {
+                machine.sources[record.source] = record.lastSeen;
+            }
+        } else if (existingDate === undefined) {
+             // Mark as present even without a date. Use a sentinel date that won't be considered "stale" or "latest".
+             // Using epoch date to signify presence without a valid timestamp. The UI component will just see a truthy value.
+             machine.sources[record.source] = new Date(0);
         }
     });
 
