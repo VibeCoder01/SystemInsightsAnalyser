@@ -114,7 +114,7 @@ export default function DashboardPage() {
                               <FileText className="size-5 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <CardTitle className="text-base font-medium font-code truncate">{file.fileName}</CardTitle>
+                            <CardTitle className="text-base font-medium font-code">{file.fileName}</CardTitle>
                             <CardDescription>{file.isConfigured ? 'Ready for analysis' : 'Needs configuration'}</CardDescription>
                           </div>
                           {file.isConfigured && <CheckCircle className="size-5 text-green-500"/>}
