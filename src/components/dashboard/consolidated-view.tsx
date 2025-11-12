@@ -210,21 +210,21 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
                     const isDisappeared = isTrulyDisappeared(record.lastSeen, thresholdDays);
                     return (
                         <TableRow key={record.computerName} className={cn(isDisappeared && 'bg-accent/10')}>
-                            <TableCell className="font-code font-medium">
+                            <TableCell className="font-code font-medium py-2 px-4">
                                 <div className="flex items-center gap-2">
                                    {isDisappeared && <Badge variant="destructive">Disappeared</Badge>}
                                    <span>{record.computerName}</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-center">
+                            <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
-                            <TableCell className="font-code text-xs">{record.lastSeenSource}</TableCell>
+                            <TableCell className="font-code text-xs py-2 px-4">{record.lastSeenSource}</TableCell>
                             {fileNames.map(name => {
                                 const sourceDate = record.sources[name];
                                 const presentNoDate = isPresentWithoutDate(sourceDate);
                                 return (
-                                <TableCell key={name} className="text-center">
+                                <TableCell key={name} className="text-center py-2 px-4">
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                              <div className="flex justify-center">
