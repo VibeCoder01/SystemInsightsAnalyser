@@ -111,10 +111,11 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
   };
 
   const handleExport = () => {
-    const csvHeaders = ['"Machine Name"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
+    const csvHeaders = ['"Machine Name"', '"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
     
     const csvRows = filteredRecords.map(record => {
       const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
+      const disappeared = `"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`;
       const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
       const lastSeenSource = record.lastSeenSource ? `"${record.lastSeenSource}"` : '""';
       
@@ -128,7 +129,7 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
         return '""'; // Not present
       });
 
-      return [machineName, lastSeen, lastSeenSource, ...sourceDates].join(',');
+      return [machineName, disappeared, lastSeen, lastSeenSource, ...sourceDates].join(',');
     });
 
     const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
