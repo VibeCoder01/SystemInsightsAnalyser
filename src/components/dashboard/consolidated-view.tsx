@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { AnalysisResults, Settings } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -35,8 +35,14 @@ function isPresentWithoutDate(date: Date | undefined): boolean {
     return !!date && date.getTime() === 0;
 }
 
+interface ConsolidatedViewProps {
+  results: AnalysisResults;
+  fileNames: string[];
+  settings: Settings;
+  onFilteredDisappearedCountChange: (data: { count: number; isFiltering: boolean } | null) => void;
+}
 
-export function ConsolidatedView({ results, fileNames, settings }: { results: AnalysisResults; fileNames: string[], settings: Settings }) {
+export function ConsolidatedView({ results, fileNames, settings, onFilteredDisappearedCountChange }: ConsolidatedViewProps) {
   const [filterText, setFilterText] = useState('');
   const [filterMode, setFilterMode] = useState<'simple' | 'regex'>('simple');
   const [regexError, setRegexError] = useState<string | null>(null);
@@ -76,6 +82,17 @@ export function ConsolidatedView({ results, fileNames, settings }: { results: An
     return results.consolidatedView.filter(record => regex.test(record.computerName));
 
   }, [results.consolidatedView, filterText, filterMode]);
+
+  useEffect(() => {
+    const isFiltering = filterText.length > 0 && regexError === null;
+    if (isFiltering) {
+      const disappearedInFilter = filteredRecords.filter(record => isTrulyDisappeared(record.lastSeen, thresholdDays)).length;
+      onFilteredDisappearedCountChange({ count: disappearedInFilter, isFiltering: true });
+    } else {
+      // If not filtering, send null or a specific state to indicate that
+      onFilteredDisappearedCountChange(null);
+    }
+  }, [filteredRecords, filterText, regexError, thresholdDays, onFilteredDisappearedCountChange]);
 
 
   const getTooltipContent = (date: Date | undefined, fileName: string) => {

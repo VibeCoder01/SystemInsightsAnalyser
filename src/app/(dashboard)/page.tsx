@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredDisappearedCount, setFilteredDisappearedCount] = useState<{count: number, isFiltering: boolean} | null>(null);
   const { settings } = useSettings();
 
   const handleFilesAdded = (newFiles: File[]) => {
@@ -54,12 +55,14 @@ export default function DashboardPage() {
     setFiles(prev => prev.filter(f => f.fileName !== fileName));
     if (analysisResults) {
         setAnalysisResults(null);
+        setFilteredDisappearedCount(null);
     }
   };
 
   const handleRunAnalysis = () => {
     setIsLoading(true);
     setAnalysisResults(null);
+    setFilteredDisappearedCount(null);
     // Use a short timeout to allow the UI to update to the loading state
     setTimeout(() => {
         const results = runAnalysis(files, settings);
@@ -191,13 +194,22 @@ export default function DashboardPage() {
                         <AlertTriangle className="h-4 w-4 text-accent" />
                         <AlertTitle>Truly Disappeared Machines</AlertTitle>
                         <AlertDescription>
-                            <span className="text-2xl font-bold">{analysisResults.trulyDisappearedCount}</span> machines have not been seen in any system within the configured threshold of {settings.disappearanceThresholdDays} days.
+                            <span className="text-2xl font-bold">{analysisResults.trulyDisappearedCount}</span>
+                            {filteredDisappearedCount && filteredDisappearedCount.isFiltering && (
+                                <span className="text-lg font-semibold text-muted-foreground"> ({filteredDisappearedCount.count} in filter)</span>
+                            )}
+                             {' '}machines have not been seen in any system within the configured threshold of {settings.disappearanceThresholdDays} days.
                         </AlertDescription>
                     </Alert>
                 </CardContent>
             </Card>
 
-            <ConsolidatedView results={analysisResults} fileNames={files.map(f => f.fileName)} settings={settings}/>
+            <ConsolidatedView 
+                results={analysisResults} 
+                fileNames={files.map(f => f.fileName)} 
+                settings={settings}
+                onFilteredDisappearedCountChange={setFilteredDisappearedCount}
+            />
 
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />
         </motion.div>
