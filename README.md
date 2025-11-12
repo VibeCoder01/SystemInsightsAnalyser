@@ -4,7 +4,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
 
 ## Key Features
 
-- **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format.
+- **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format. The app prevents uploading files with the same name to avoid confusion.
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
@@ -19,7 +19,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
-- **CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file for offline analysis and reporting.
+- **CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file for offline analysis and reporting. The export includes a column indicating if a machine is considered "disappeared".
 
 ## How to Use the Application
 
@@ -40,7 +40,7 @@ DEV-MACHINE,2023-11-02T08:00:00Z
 
 ### 2. Step 1: Upload Files
 
-Drag and drop your prepared data files onto the upload area, or use the "Browse Files" button to select them. You can add multiple files from different sources.
+Drag and drop your prepared data files onto the upload area, or use the "Browse Files" button to select them. You can add multiple files from different sources. You cannot upload two files with the exact same name.
 
 ### 3. Step 2: Configure Files
 
@@ -75,9 +75,9 @@ After the analysis is complete, you will see a detailed breakdown:
 - **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines". If you are filtering the results below, this card will also show a count of disappeared machines *within your filtered view*.
 - **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
   - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering.
-  - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card.
-  - **Machine Name**: The name of the computer. A row with an orange background indicates the machine is "truly disappeared."
-  - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed as `dd Month yyyy`.
+  - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card. The export includes a dedicated column indicating whether each machine is considered "disappeared".
+  - **Machine Name**: The name of the computer. A row with a light orange background indicates the machine is "truly disappeared."
+  - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed in `dd MMM yyyy` format.
   - **Last Seen Source**: The name of the file where the latest sighting occurred.
   - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates the machine's status in that file:
     - <span style="color:green;">✔</span> **Green Check**: Present and the record is not stale.
