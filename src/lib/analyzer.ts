@@ -132,16 +132,23 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
     return consolidatedRecords;
 }
 
-function calculatePerFileStats(consolidatedView: ConsolidatedRecord[], fileNames: string[], settings: Settings): PerFileStats {
+function calculatePerFileStats(consolidatedView: ConsolidatedRecord[], configuredFiles: ParsedFile[], settings: Settings): PerFileStats {
     const stats: PerFileStats = {};
     const staleThreshold = new Date();
     staleThreshold.setDate(staleThreshold.getDate() - settings.disappearanceThresholdDays);
 
-    fileNames.forEach(fileName => {
-        const fileStats = { present: 0, stale: 0, missing: 0, noDate: 0, total: consolidatedView.length };
+    configuredFiles.forEach(file => {
+        const fileStats = { 
+            present: 0, 
+            stale: 0, 
+            missing: 0, 
+            noDate: 0, 
+            totalInConsolidated: consolidatedView.length,
+            sourceRecordCount: file.data.length
+        };
         
         consolidatedView.forEach(record => {
-            const sourceDate = record.sources[fileName];
+            const sourceDate = record.sources[file.fileName];
             if (sourceDate === undefined) {
                 fileStats.missing++;
             } else if (sourceDate.getTime() === 0) {
@@ -153,7 +160,7 @@ function calculatePerFileStats(consolidatedView: ConsolidatedRecord[], fileNames
             }
         });
 
-        stats[fileName] = fileStats;
+        stats[file.fileName] = fileStats;
     });
 
     return stats;
@@ -208,7 +215,7 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
   
   const trulyDisappearedMachines = consolidatedView.filter(record => !record.lastSeen || record.lastSeen < thresholdDate);
 
-  const perFileStats = calculatePerFileStats(consolidatedView, fileNames, settings);
+  const perFileStats = calculatePerFileStats(consolidatedView, configuredFiles, settings);
 
 
   return { crossComparisons, disappearedMachines: [], consolidatedView, trulyDisappearedCount: trulyDisappearedMachines.length, perFileStats };

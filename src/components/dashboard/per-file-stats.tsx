@@ -24,7 +24,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                     <TableHeader>
                         <TableRow>
                             <TableHead className="font-code">File Name</TableHead>
-                            <TableHead className="text-center">Total Machines</TableHead>
+                            <TableHead className="text-center">Total Entries</TableHead>
                             <TableHead className="text-center">
                                 <TooltipProvider>
                                     <Tooltip>
@@ -81,6 +81,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     </Tooltip>
                                 </TooltipProvider>
                             </TableHead>
+                             <TableHead className="text-center">Total Unique Machines</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -89,11 +90,12 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                             return (
                                 <TableRow key={fileName}>
                                     <TableCell className="font-code font-medium">{fileName}</TableCell>
-                                    <TableCell className="text-center">{fileStats.total}</TableCell>
+                                    <TableCell className="text-center">{fileStats.sourceRecordCount}</TableCell>
                                     <TableCell className="text-center">{fileStats.present}</TableCell>
                                     <TableCell className="text-center">{fileStats.stale}</TableCell>
                                     <TableCell className="text-center">{fileStats.noDate}</TableCell>
                                     <TableCell className="text-center">{fileStats.missing}</TableCell>
+                                    <TableCell className="text-center">{fileStats.totalInConsolidated}</TableCell>
                                 </TableRow>
                             );
                         })}

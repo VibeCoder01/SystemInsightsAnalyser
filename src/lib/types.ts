@@ -49,7 +49,8 @@ export type PerFileStats = {
     stale: number;
     missing: number;
     noDate: number;
-    total: number;
+    totalInConsolidated: number;
+    sourceRecordCount: number;
   };
 };
 
