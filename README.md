@@ -4,14 +4,16 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
 
 ## Key Features
 
+- **Session Persistence**: The application automatically saves your session. When you reopen the app, it pre-loads the files you were working with, allowing you to pick up right where you left off.
+- **Intelligent Configuration Memory**: The app remembers the column mappings for files you've configured before. If you upload a file with the same content again, it will be automatically configured, saving you repetitive setup work.
 - **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format. The app prevents uploading files with the same name to avoid confusion.
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
+- **Detailed Per-File Statistics**: After analysis, get a high-level breakdown for each file, showing counts of machines that are present, stale, missing, or have no date information.
 - **Intelligent Date Format Detection**: The application automatically analyzes your date columns and suggests the correct format, saving you time and preventing parsing errors. You can still manually adjust the format if needed.
 - **Flexible Filtering (Wildcards & Regex)**: Filter the main results view with simple wildcards (`*` and `?`) or powerful regular expressions to quickly find specific machines.
 - **Contextual Analysis Summary**: The "disappeared machines" count dynamically updates to show you how many machines in your filtered results match the criteria.
-- **Flexible Data Configuration**: For each uploaded file, you can map which columns correspond to the `Computer Name` and the `Last Seen Date`.
 - **Configurable Heuristics**:
   - **Disappearance Threshold**: Easily set the number of days a machine must be inactive across all systems to be flagged as "disappeared".
   - **Case-Sensitive Analysis**: Choose whether machine name comparisons should be case-sensitive or case-insensitive.
@@ -19,7 +21,7 @@ The System Insights Analyzer is a powerful tool designed to help you consolidate
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
-- **CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file for offline analysis and reporting. The export includes a column indicating if a machine is considered "disappeared".
+- **Enhanced CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file. The export now includes a dedicated column indicating if a machine is considered "disappeared," making it perfect for offline analysis and reporting.
 
 ## How to Use the Application
 
@@ -42,11 +44,14 @@ DEV-MACHINE,2023-11-02T08:00:00Z
 
 Drag and drop your prepared data files onto the upload area, or use the "Browse Files" button to select them. You can add multiple files from different sources. You cannot upload two files with the exact same name.
 
+*(Note: The application will remember the files from your last session and automatically load them for you.)*
+
 ### 3. Step 2: Configure Files
 
 For each file you've uploaded, you need to tell the analyzer how to interpret it.
 
 - Click the **"Configure"** button on a file card.
+- **Automatic Configuration**: If you've uploaded a file with the same content before, the app will automatically apply your previous settings. You can still click "Edit" to change them.
 - In the dialog, select the column from your file that contains the **Computer Name**. This is required.
 - Select the column that contains the **Last Seen Date**. This is optional. If no date column is available, select "None".
 - A preview of your data is shown to help you make the correct selections.
@@ -73,6 +78,7 @@ Once you have at least one file configured, the "Run Analysis" button will becom
 After the analysis is complete, you will see a detailed breakdown:
 
 - **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines". If you are filtering the results below, this card will also show a count of disappeared machines *within your filtered view*.
+- **Per-File Statistics**: A table showing a breakdown for each source file, with counts for machines that are present, stale, missing, or have no date information.
 - **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
   - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering.
   - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card. The export includes a dedicated column indicating whether each machine is considered "disappeared".
