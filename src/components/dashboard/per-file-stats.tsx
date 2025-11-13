@@ -8,16 +8,18 @@ import { Check, HelpCircle, X, History } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 
-export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
+export function PerFileStats({ stats, isFiltering }: { stats: PerFileStatsType, isFiltering: boolean }) {
     const fileNames = Object.keys(stats);
     if (fileNames.length === 0) return null;
+    const asterisk = isFiltering ? <span className="text-primary">*</span> : null;
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Per-File Statistics</CardTitle>
+                <CardTitle>Per-File Statistics {asterisk}</CardTitle>
                 <CardDescription>
-                    Breakdown of machine statuses within each file compared against the consolidated list of all machines.
+                    Breakdown of machine statuses within each file.
+                    {isFiltering && " Values marked with * are based on the filtered view above."}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -32,7 +34,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span className="flex items-center justify-center gap-2 cursor-help">
-                                                <Check className="size-4 text-green-600"/> Present
+                                                <Check className="size-4 text-green-600"/> Present {asterisk}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -46,7 +48,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span className="flex items-center justify-center gap-2 cursor-help">
-                                                 <History className="size-4 text-amber-600"/> Stale
+                                                 <History className="size-4 text-amber-600"/> Stale {asterisk}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -60,7 +62,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span className="flex items-center justify-center gap-2 cursor-help">
-                                                <HelpCircle className="size-4 text-slate-500"/> No Date
+                                                <HelpCircle className="size-4 text-slate-500"/> No Date {asterisk}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -74,7 +76,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <span className="flex items-center justify-center gap-2 cursor-help">
-                                                <X className="size-4 text-red-600"/> Missing
+                                                <X className="size-4 text-red-600"/> Missing {asterisk}
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
@@ -83,7 +85,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     </Tooltip>
                                 </TooltipProvider>
                             </TableHead>
-                             <TableHead className="text-center">Total In View</TableHead>
+                             <TableHead className="text-center">Total In View {asterisk}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

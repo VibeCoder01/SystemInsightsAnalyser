@@ -269,10 +269,10 @@ export default function DashboardPage() {
 
   }, [analysisResults, filterText, filterMode]);
 
+  const isFiltering = useMemo(() => filterText.length > 0 && regexError === null, [filterText, regexError]);
 
   const filteredDisappearedCount = useMemo(() => {
      if (!analysisResults) return { count: 0, isFiltering: false };
-     const isFiltering = filterText.length > 0 && regexError === null;
      
      if (isFiltering) {
         const disappearedInFilter = filteredRecords.filter(record => isTrulyDisappeared(record.lastSeen, settings.disappearanceThresholdDays)).length;
@@ -280,16 +280,15 @@ export default function DashboardPage() {
      }
 
      return { count: analysisResults.trulyDisappearedCount, isFiltering: false };
-  }, [analysisResults, filteredRecords, filterText, regexError, settings.disappearanceThresholdDays]);
+  }, [analysisResults, filteredRecords, isFiltering, settings.disappearanceThresholdDays]);
 
   const displayedStats = useMemo(() => {
     if (!analysisResults) return null;
-    const isFiltering = filterText.length > 0 && regexError === null;
     if (isFiltering) {
       return recalculateStatsFromView(filteredRecords, files.filter(f => f.isConfigured), settings);
     }
     return analysisResults.perFileStats;
-  }, [analysisResults, filteredRecords, files, settings, filterText, regexError]);
+  }, [analysisResults, filteredRecords, files, settings, isFiltering]);
 
 
   return (
@@ -432,7 +431,7 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            {displayedStats && <PerFileStats stats={displayedStats} />}
+            {displayedStats && <PerFileStats stats={displayedStats} isFiltering={isFiltering} />}
 
             <ConsolidatedView 
                 records={filteredRecords}
@@ -444,6 +443,7 @@ export default function DashboardPage() {
                 filterMode={filterMode}
                 setFilterMode={setFilterMode}
                 regexError={regexError}
+                isFiltering={isFiltering}
             />
 
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />
@@ -459,5 +459,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-
-    

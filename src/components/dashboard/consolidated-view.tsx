@@ -45,6 +45,7 @@ interface ConsolidatedViewProps {
   filterMode: 'simple' | 'regex';
   setFilterMode: (mode: 'simple' | 'regex') => void;
   regexError: string | null;
+  isFiltering: boolean;
 }
 
 export function ConsolidatedView({ 
@@ -56,7 +57,8 @@ export function ConsolidatedView({
   setFilterText,
   filterMode,
   setFilterMode,
-  regexError 
+  regexError,
+  isFiltering
 }: ConsolidatedViewProps) {
   
   if (totalRecordCount === 0) {
@@ -120,9 +122,10 @@ export function ConsolidatedView({
         <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between">
                 <div>
-                    <CardTitle>Consolidated Machine View</CardTitle>
+                    <CardTitle>Consolidated Machine View {isFiltering && <span className="text-primary">*</span>}</CardTitle>
                     <CardDescription>
-                    A unified list of all unique machines found across all files. Showing {records.length} of {totalRecordCount} machines.
+                    A unified list of all unique machines. Showing {records.length} of {totalRecordCount} machines.
+                    {isFiltering && " Filtering also updates the Summary and Statistics panels."}
                     </CardDescription>
                 </div>
                 <Button variant="outline" onClick={handleExport}>
