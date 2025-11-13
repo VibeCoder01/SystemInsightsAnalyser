@@ -55,7 +55,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     </Tooltip>
                                 </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-center">
+                            <TableHead className="text-center border-r">
                                 <TooltipProvider>
                                     <Tooltip>
                                         <TooltipTrigger asChild>
@@ -96,7 +96,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <TableCell className="text-center">{fileStats.uniqueSourceRecordCount}</TableCell>
                                     <TableCell className="text-center">{fileStats.present}</TableCell>
                                     <TableCell className="text-center">{fileStats.stale}</TableCell>
-                                    <TableCell className="text-center">{fileStats.noDate}</TableCell>
+                                    <TableCell className="text-center border-r">{fileStats.noDate}</TableCell>
                                     <TableCell className="text-center">{fileStats.missing}</TableCell>
                                     <TableCell className="text-center">{fileStats.totalInConsolidated}</TableCell>
                                 </TableRow>
