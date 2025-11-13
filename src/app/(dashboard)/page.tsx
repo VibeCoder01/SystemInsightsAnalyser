@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -18,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const CONFIG_STORAGE_PREFIX = 'file-config-';
+const SESSION_FILES_KEY = 'system-insights-analyzer-files';
 
 // A simple and fast string hashing function (djb2 algorithm)
 function hashString(str: string): number {
@@ -53,6 +55,50 @@ function setStoredConfig(key: string, mappings: Mappings) {
     }
 }
 
+type StoredFile = {
+    fileName: string;
+    content: string;
+};
+
+// Function to process a raw file object or a stored file object
+function processAndAddFile(file: File | StoredFile, existingFiles: ParsedFile[], setFiles: React.Dispatch<React.SetStateAction<ParsedFile[]>>) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const fileName = 'name' in file ? file.name : file.fileName;
+
+        if (existingFiles.some(f => f.fileName === fileName)) {
+          return;
+        }
+
+        const { headers, data } = parseFileContent(content);
+        const storageKey = getFileStorageKey(fileName, content);
+        const storedMappings = getStoredConfig(storageKey);
+
+        setFiles(prev => [
+            ...prev,
+            {
+                fileName: fileName,
+                content,
+                headers,
+                data,
+                mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
+                isConfigured: !!storedMappings,
+                records: [],
+            },
+        ]);
+    };
+    
+    if ('size' in file) { // It's a File object
+      reader.readAsText(file);
+    } else { // It's a StoredFile object
+      const blob = new Blob([file.content], { type: 'text/plain' });
+      reader.readAsText(blob);
+    }
+}
+
+
 export default function DashboardPage() {
   const [files, setFiles] = useState<ParsedFile[]>([]);
   const [selectedFileForConfig, setSelectedFileForConfig] = useState<ParsedFile | null>(null);
@@ -63,50 +109,93 @@ export default function DashboardPage() {
   const { settings } = useSettings();
   const { toast } = useToast();
 
-  const handleFilesAdded = (newFiles: File[]) => {
-    const uniqueNewFiles: File[] = [];
-    const existingFileNames = new Set(files.map(f => f.fileName));
-
-    for (const file of newFiles) {
-        if (existingFileNames.has(file.name)) {
-            toast({
-                variant: 'destructive',
-                title: 'File already exists',
-                description: `A file named "${file.name}" has already been uploaded.`,
+  // Effect to load files from localStorage on initial mount
+  useEffect(() => {
+    try {
+      const storedFilesRaw = localStorage.getItem(SESSION_FILES_KEY);
+      if (storedFilesRaw) {
+        const storedFiles: StoredFile[] = JSON.parse(storedFilesRaw);
+        if (Array.isArray(storedFiles)) {
+          // Use a temporary array to batch state updates if needed, though React 18 batches automatically
+          const initialFiles: ParsedFile[] = [];
+          storedFiles.forEach(storedFile => {
+            const { headers, data } = parseFileContent(storedFile.content);
+            const storageKey = getFileStorageKey(storedFile.fileName, storedFile.content);
+            const storedMappings = getStoredConfig(storageKey);
+            initialFiles.push({
+              fileName: storedFile.fileName,
+              content: storedFile.content,
+              headers,
+              data,
+              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
+              isConfigured: !!storedMappings,
+              records: [],
             });
-        } else {
-            uniqueNewFiles.push(file);
-            existingFileNames.add(file.name); // Add to set to handle duplicates within the same batch
+          });
+          setFiles(initialFiles);
         }
+      }
+    } catch (error) {
+      console.error("Failed to load files from session storage:", error);
     }
-    
-    if (uniqueNewFiles.length === 0) return;
+  }, []);
 
-    uniqueNewFiles.forEach(file => {
+  // Effect to save files to localStorage whenever they change
+  useEffect(() => {
+    try {
+      if (files.length > 0) {
+        const filesToStore: StoredFile[] = files.map(({ fileName, content }) => ({ fileName, content }));
+        localStorage.setItem(SESSION_FILES_KEY, JSON.stringify(filesToStore));
+      } else {
+        localStorage.removeItem(SESSION_FILES_KEY);
+      }
+    } catch (error) {
+      console.error("Failed to save files to session storage:", error);
+    }
+  }, [files]);
+
+
+  const handleFilesAdded = (newFiles: File[]) => {
+    const existingFileNames = new Set(files.map(f => f.fileName));
+    
+    newFiles.forEach(file => {
+      if (existingFileNames.has(file.name)) {
+        toast({
+          variant: 'destructive',
+          title: 'File already exists',
+          description: `A file named "${file.name}" has already been uploaded.`,
+        });
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
         const { headers, data } = parseFileContent(content);
-
         const storageKey = getFileStorageKey(file.name, content);
         const storedMappings = getStoredConfig(storageKey);
 
-        setFiles(prev => [
-          ...prev,
-          {
-            fileName: file.name,
-            content, // Store content for hashing on save
-            headers,
-            data,
-            mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
-            isConfigured: !!storedMappings,
-            records: [],
-          },
-        ]);
+        setFiles(prev => {
+          // Double check for race conditions.
+          if (prev.some(f => f.fileName === file.name)) return prev;
+          return [
+            ...prev,
+            {
+              fileName: file.name,
+              content,
+              headers,
+              data,
+              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
+              isConfigured: !!storedMappings,
+              records: [],
+            },
+          ]
+        });
       };
       reader.readAsText(file);
     });
   };
+
 
   const handleSaveConfig = (updatedFile: ParsedFile) => {
     // Save the configuration to localStorage
@@ -300,3 +389,5 @@ export default function DashboardPage() {
     </main>
   );
 }
+
+    
