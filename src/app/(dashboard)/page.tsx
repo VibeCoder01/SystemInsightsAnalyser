@@ -19,19 +19,25 @@ import { useToast } from '@/hooks/use-toast';
 
 const CONFIG_STORAGE_PREFIX = 'file-config-';
 
-// Creates a simple "fingerprint" of the file content to use as a storage key.
-// This avoids needing a full hash and is good enough for this use case.
-function getFileFingerprint(fileName: string, content: string): string {
-    const lines = content.trim().split('\n');
-    const header = lines[0] || '';
-    const firstDataLine = lines[1] || '';
-    const lastDataLine = lines.length > 1 ? lines[lines.length - 1] : '';
-    return `${CONFIG_STORAGE_PREFIX}${fileName}::${header}::${firstDataLine}::${lastDataLine}`;
+// A simple and fast string hashing function (djb2 algorithm)
+function hashString(str: string): number {
+    let hash = 5381;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) + hash) + char; /* hash * 33 + c */
+    }
+    return hash;
 }
 
-function getStoredConfig(fingerprint: string): Mappings | null {
+// Creates a storage key based on the file name and a hash of its content.
+function getFileStorageKey(fileName: string, content: string): string {
+    const contentHash = hashString(content);
+    return `${CONFIG_STORAGE_PREFIX}${fileName}::${contentHash}`;
+}
+
+function getStoredConfig(key: string): Mappings | null {
     try {
-        const stored = localStorage.getItem(fingerprint);
+        const stored = localStorage.getItem(key);
         return stored ? JSON.parse(stored) : null;
     } catch (e) {
         console.error("Failed to read config from localStorage", e);
@@ -39,9 +45,9 @@ function getStoredConfig(fingerprint: string): Mappings | null {
     }
 }
 
-function setStoredConfig(fingerprint: string, mappings: Mappings) {
+function setStoredConfig(key: string, mappings: Mappings) {
     try {
-        localStorage.setItem(fingerprint, JSON.stringify(mappings));
+        localStorage.setItem(key, JSON.stringify(mappings));
     } catch (e) {
         console.error("Failed to save config to localStorage", e);
     }
@@ -82,14 +88,14 @@ export default function DashboardPage() {
         const content = e.target?.result as string;
         const { headers, data } = parseFileContent(content);
 
-        const fingerprint = getFileFingerprint(file.name, content);
-        const storedMappings = getStoredConfig(fingerprint);
+        const storageKey = getFileStorageKey(file.name, content);
+        const storedMappings = getStoredConfig(storageKey);
 
         setFiles(prev => [
           ...prev,
           {
             fileName: file.name,
-            content, // Store content for fingerprinting on save
+            content, // Store content for hashing on save
             headers,
             data,
             mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
@@ -105,8 +111,8 @@ export default function DashboardPage() {
   const handleSaveConfig = (updatedFile: ParsedFile) => {
     // Save the configuration to localStorage
     if (updatedFile.content) {
-        const fingerprint = getFileFingerprint(updatedFile.fileName, updatedFile.content);
-        setStoredConfig(fingerprint, updatedFile.mappings);
+        const storageKey = getFileStorageKey(updatedFile.fileName, updatedFile.content);
+        setStoredConfig(storageKey, updatedFile.mappings);
     }
     
     setFiles(prev => prev.map(f => f.fileName === updatedFile.fileName ? updatedFile : f));
