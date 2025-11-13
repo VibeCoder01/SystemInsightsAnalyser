@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { ParsedFile, AnalysisResults } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
 import { parseFileContent, runAnalysis } from '@/lib/analyzer';
@@ -145,7 +145,14 @@ export default function DashboardPage() {
                             <CardDescription>{file.isConfigured ? 'Ready for analysis' : 'Needs configuration'}</CardDescription>
                           </div>
                       </CardHeader>
-                      <CardContent className="flex-grow justify-end flex flex-col">
+                      <CardContent className="flex-grow justify-end flex flex-col pt-0">
+                        {file.data.length > 0 && (
+                          <div className="text-sm text-muted-foreground mb-4">
+                            <p>
+                              <span className="font-semibold text-foreground">{file.data.length}</span> records found
+                            </p>
+                          </div>
+                        )}
                         <div className="flex gap-2 mt-auto">
                             <Button
                               variant="outline"
