@@ -50,7 +50,7 @@ export type PerFileStats = {
     stale: number;
     missing: number;
     noDate: number;
-    totalInConsolidated: number;
+    totalInView: number;
     sourceRecordCount: number;
     uniqueSourceRecordCount: number;
   };

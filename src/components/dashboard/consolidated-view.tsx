@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
-import type { AnalysisResults, Settings } from '@/lib/types';
+import { useMemo } from 'react';
+import type { Settings, ConsolidatedRecord } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,64 +36,34 @@ function isPresentWithoutDate(date: Date | undefined): boolean {
 }
 
 interface ConsolidatedViewProps {
-  results: AnalysisResults;
+  records: ConsolidatedRecord[];
+  totalRecordCount: number;
   fileNames: string[];
   settings: Settings;
-  onFilteredDisappearedCountChange: (data: { count: number; isFiltering: boolean } | null) => void;
+  filterText: string;
+  setFilterText: (text: string) => void;
+  filterMode: 'simple' | 'regex';
+  setFilterMode: (mode: 'simple' | 'regex') => void;
+  regexError: string | null;
 }
 
-export function ConsolidatedView({ results, fileNames, settings, onFilteredDisappearedCountChange }: ConsolidatedViewProps) {
-  const [filterText, setFilterText] = useState('');
-  const [filterMode, setFilterMode] = useState<'simple' | 'regex'>('simple');
-  const [regexError, setRegexError] = useState<string | null>(null);
+export function ConsolidatedView({ 
+  records,
+  totalRecordCount,
+  fileNames, 
+  settings, 
+  filterText,
+  setFilterText,
+  filterMode,
+  setFilterMode,
+  regexError 
+}: ConsolidatedViewProps) {
   
-  if (!results.consolidatedView || results.consolidatedView.length === 0) {
+  if (totalRecordCount === 0) {
     return null;
   }
   
   const thresholdDays = settings.disappearanceThresholdDays;
-
-  const filteredRecords = useMemo(() => {
-    if (!filterText) {
-      setRegexError(null);
-      return results.consolidatedView;
-    }
-
-    let regex: RegExp;
-    try {
-      if (filterMode === 'simple') {
-        const pattern =
-          '^' +
-          filterText
-            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
-            .replace(/\\\*/g, '.*') // Convert * to .*
-            .replace(/\\\?/g, '.') + // Convert ? to .
-          '$';
-        regex = new RegExp(pattern, 'i'); // Case-insensitive
-      } else {
-        regex = new RegExp(filterText, 'i');
-      }
-      setRegexError(null);
-    } catch (e: any) {
-      setRegexError(e.message);
-      return [];
-    }
-    
-    return results.consolidatedView.filter(record => regex.test(record.computerName));
-
-  }, [results.consolidatedView, filterText, filterMode]);
-
-  useEffect(() => {
-    const isFiltering = filterText.length > 0 && regexError === null;
-    if (isFiltering) {
-      const disappearedInFilter = filteredRecords.filter(record => isTrulyDisappeared(record.lastSeen, thresholdDays)).length;
-      onFilteredDisappearedCountChange({ count: disappearedInFilter, isFiltering: true });
-    } else {
-      // If not filtering, send null or a specific state to indicate that
-      onFilteredDisappearedCountChange(null);
-    }
-  }, [filteredRecords, filterText, regexError, thresholdDays, onFilteredDisappearedCountChange]);
-
 
   const getTooltipContent = (date: Date | undefined, fileName: string) => {
     if (!date) {
@@ -113,7 +83,7 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
   const handleExport = () => {
     const csvHeaders = ['"Machine Name"', '"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
     
-    const csvRows = filteredRecords.map(record => {
+    const csvRows = records.map(record => {
       const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
       const disappeared = `"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`;
       const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
@@ -152,7 +122,7 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
                 <div>
                     <CardTitle>Consolidated Machine View</CardTitle>
                     <CardDescription>
-                    A unified list of all unique machines found across all files. Showing {filteredRecords.length} of {results.consolidatedView.length} machines.
+                    A unified list of all unique machines found across all files. Showing {records.length} of {totalRecordCount} machines.
                     </CardDescription>
                 </div>
                 <Button variant="outline" onClick={handleExport}>
@@ -206,7 +176,7 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
             </TableHeader>
             <TableBody>
               <TooltipProvider>
-                {filteredRecords.map(record => {
+                {records.map(record => {
                     const isDisappeared = isTrulyDisappeared(record.lastSeen, thresholdDays);
                     return (
                         <TableRow key={record.computerName} className={cn(isDisappeared && 'bg-accent/10')}>
@@ -261,5 +231,3 @@ export function ConsolidatedView({ results, fileNames, settings, onFilteredDisap
     </Card>
   );
 }
-
-    

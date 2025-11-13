@@ -1,10 +1,10 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from 'react';
-import type { ParsedFile, Mappings } from '@/lib/types';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import type { ParsedFile, Mappings, AnalysisResults, ConsolidatedRecord } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
-import { parseFileContent, runAnalysis } from '@/lib/analyzer';
+import { parseFileContent, runAnalysis, recalculateStatsFromView } from '@/lib/analyzer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUpload } from '@/components/dashboard/file-upload';
@@ -98,6 +98,13 @@ function processAndAddFile(file: File | StoredFile, existingFiles: ParsedFile[],
     }
 }
 
+function isTrulyDisappeared(date: Date | null, thresholdDays: number): boolean {
+    if (!date) return true; // Disappeared if never seen
+    const threshold = new Date();
+    threshold.setDate(threshold.getDate() - thresholdDays);
+    return date < threshold;
+}
+
 
 export default function DashboardPage() {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -105,7 +112,10 @@ export default function DashboardPage() {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [filteredDisappearedCount, setFilteredDisappearedCount] = useState<{count: number, isFiltering: boolean} | null>(null);
+  const [filterText, setFilterText] = useState('');
+  const [filterMode, setFilterMode] = useState<'simple' | 'regex'>('simple');
+  const [regexError, setRegexError] = useState<string | null>(null);
+
   const { settings } = useSettings();
   const { toast } = useToast();
 
@@ -211,14 +221,13 @@ export default function DashboardPage() {
     setFiles(prev => prev.filter(f => f.fileName !== fileName));
     if (analysisResults) {
         setAnalysisResults(null);
-        setFilteredDisappearedCount(null);
     }
   };
 
   const handleRunAnalysis = () => {
     setIsLoading(true);
     setAnalysisResults(null);
-    setFilteredDisappearedCount(null);
+    setFilterText(''); // Reset filter on new analysis
     // Use a short timeout to allow the UI to update to the loading state
     setTimeout(() => {
         const results = runAnalysis(files, settings);
@@ -228,6 +237,60 @@ export default function DashboardPage() {
   };
   
   const configuredFileCount = useMemo(() => files.filter(f => f.isConfigured).length, [files]);
+
+  const filteredRecords = useMemo(() => {
+    if (!analysisResults) return [];
+    if (!filterText) {
+      setRegexError(null);
+      return analysisResults.consolidatedView;
+    }
+
+    let regex: RegExp;
+    try {
+      if (filterMode === 'simple') {
+        const pattern =
+          '^' +
+          filterText
+            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // Escape regex special chars
+            .replace(/\\\*/g, '.*') // Convert * to .*
+            .replace(/\\\?/g, '.') + // Convert ? to .
+          '$';
+        regex = new RegExp(pattern, 'i'); // Case-insensitive
+      } else {
+        regex = new RegExp(filterText, 'i');
+      }
+      setRegexError(null);
+    } catch (e: any) {
+      setRegexError(e.message);
+      return [];
+    }
+    
+    return analysisResults.consolidatedView.filter(record => regex.test(record.computerName));
+
+  }, [analysisResults, filterText, filterMode]);
+
+
+  const filteredDisappearedCount = useMemo(() => {
+     if (!analysisResults) return { count: 0, isFiltering: false };
+     const isFiltering = filterText.length > 0 && regexError === null;
+     
+     if (isFiltering) {
+        const disappearedInFilter = filteredRecords.filter(record => isTrulyDisappeared(record.lastSeen, settings.disappearanceThresholdDays)).length;
+        return { count: disappearedInFilter, isFiltering: true };
+     }
+
+     return { count: analysisResults.trulyDisappearedCount, isFiltering: false };
+  }, [analysisResults, filteredRecords, filterText, regexError, settings.disappearanceThresholdDays]);
+
+  const displayedStats = useMemo(() => {
+    if (!analysisResults) return null;
+    const isFiltering = filterText.length > 0 && regexError === null;
+    if (isFiltering) {
+      return recalculateStatsFromView(filteredRecords, files.filter(f => f.isConfigured), settings);
+    }
+    return analysisResults.perFileStats;
+  }, [analysisResults, filteredRecords, files, settings, filterText, regexError]);
+
 
   return (
     <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-8">
@@ -357,9 +420,11 @@ export default function DashboardPage() {
                         <AlertTriangle className="h-4 w-4 text-accent" />
                         <AlertTitle>Truly Disappeared Machines</AlertTitle>
                         <AlertDescription>
-                            <span className="text-2xl font-bold">{analysisResults.trulyDisappearedCount}</span>
-                            {filteredDisappearedCount && filteredDisappearedCount.isFiltering && (
-                                <span className="text-lg font-semibold text-muted-foreground"> ({filteredDisappearedCount.count} in filter)</span>
+                            <span className="text-2xl font-bold">{filteredDisappearedCount.count}</span>
+                            {filteredDisappearedCount.isFiltering ? (
+                                <span className="text-lg font-semibold text-muted-foreground"> (in current filter)</span>
+                            ) : (
+                                <span className="text-lg font-semibold text-muted-foreground"> (total)</span>
                             )}
                              {' '}machines have not been seen in any system within the configured threshold of {settings.disappearanceThresholdDays} days.
                         </AlertDescription>
@@ -367,13 +432,18 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            <PerFileStats stats={analysisResults.perFileStats} />
+            {displayedStats && <PerFileStats stats={displayedStats} />}
 
             <ConsolidatedView 
-                results={analysisResults} 
+                records={filteredRecords}
+                totalRecordCount={analysisResults.consolidatedView.length}
                 fileNames={files.map(f => f.fileName)} 
                 settings={settings}
-                onFilteredDisappearedCountChange={setFilteredDisappearedCount}
+                filterText={filterText}
+                setFilterText={setFilterText}
+                filterMode={filterMode}
+                setFilterMode={setFilterMode}
+                regexError={regexError}
             />
 
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />

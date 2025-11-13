@@ -98,7 +98,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     <TableCell className="text-center">{fileStats.stale}</TableCell>
                                     <TableCell className="text-center border-r">{fileStats.noDate}</TableCell>
                                     <TableCell className="text-center">{fileStats.missing}</TableCell>
-                                    <TableCell className="text-center">{fileStats.totalInConsolidated}</TableCell>
+                                    <TableCell className="text-center">{fileStats.totalInView}</TableCell>
                                 </TableRow>
                             );
                         })}
