@@ -2,6 +2,35 @@
 
 The System Insights Analyzer is a powerful tool designed to help you consolidate and analyze computer management data from various sources. By uploading and comparing data from systems like Active Directory (AD), SCCM, or antivirus logs, you can identify discrepancies, find machines that have truly disappeared from your network, and get a unified view of your entire device landscape.
 
+## Getting Started
+
+To run this application on your local machine, please follow these steps.
+
+### Prerequisites
+
+- You must have [Node.js](https://nodejs.org/) (version 18 or later recommended) installed.
+- You must have a package manager like [npm](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com/) installed.
+
+### Installation
+
+1.  **Clone the repository** (or download the source code).
+2.  **Navigate to the project directory** in your terminal.
+3.  **Install the dependencies** by running the following command:
+
+    ```bash
+    npm install
+    ```
+
+### Running the Application
+
+Once the dependencies are installed, you can start the local development server:
+
+```bash
+npm run dev
+```
+
+The application will now be running and accessible at `http://localhost:9002`.
+
 ## Privacy & Data Storage
 
 This application is designed with your privacy in mind. All file processing and analysis happens **entirely within your web browser**.
