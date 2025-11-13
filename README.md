@@ -17,7 +17,7 @@ This application is designed with your privacy in mind. All file processing and 
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
-- **Detailed Per-File Statistics**: After analysis, get a high-level breakdown for each file, showing counts for total entries, unique machines, and the status of those machines (present, stale, missing, no date) relative to the consolidated list.
+- **Dynamic Per-File Statistics**: As you filter the main consolidated view, the per-file statistics table dynamically updates to reflect the counts and statuses of only the machines in your filtered results. This allows for interactive "what-if" analysis.
 - **Intelligent Date Format Detection**: The application automatically analyzes your date columns and suggests the correct format, saving you time and preventing parsing errors. You can still manually adjust the format if needed.
 - **Flexible Filtering (Wildcards & Regex)**: Filter the main results view with simple wildcards (`*` and `?`) or powerful regular expressions to quickly find specific machines.
 - **Contextual Analysis Summary**: The "disappeared machines" count dynamically updates to show you how many machines in your filtered results match the criteria.
@@ -84,14 +84,15 @@ Once you have at least one file configured, the "Run Analysis" button will becom
 
 After the analysis is complete, you will see a detailed breakdown:
 
-- **Analysis Summary**: A high-level card showing the total count of "Truly Disappeared Machines". If you are filtering the results below, this card will also show a count of disappeared machines *within your filtered view*.
-- **Per-File Statistics**: A table showing a breakdown for each source file. It includes:
+- **Analysis Summary**: A high-level card showing the count of "Truly Disappeared Machines". If you are filtering the results below, this card will also show a count of disappeared machines *within your filtered view*.
+- **Per-File Statistics**: A table showing a breakdown for each source file. **This table updates dynamically as you filter the Consolidated View**, showing statistics for just the machines in your filtered result set. It includes:
   - **Total Entries**: The raw number of rows in the original file.
   - **Unique Machines**: The number of distinct computer names found in that file.
   - **Present / Stale / No Date**: Counts of machines from this file based on their status in the consolidated view (up-to-date, older than the threshold, or present without a date).
   - **Missing**: The number of machines that exist in *other* files but are not present in this one.
+  - **Total In View**: The number of machines currently visible in the filtered Consolidated View.
 - **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
-  - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering.
+  - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering. As you filter, the Analysis Summary and Per-File Statistics will update in real-time.
   - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card. The export includes a dedicated column indicating whether each machine is considered "disappeared".
   - **Machine Name**: The name of the computer. A row with a light orange background indicates the machine is "truly disappeared."
   - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed in `dd MMM yyyy` format.
