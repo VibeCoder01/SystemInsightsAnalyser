@@ -2,6 +2,13 @@
 
 The System Insights Analyzer is a powerful tool designed to help you consolidate and analyze computer management data from various sources. By uploading and comparing data from systems like Active Directory (AD), SCCM, or antivirus logs, you can identify discrepancies, find machines that have truly disappeared from your network, and get a unified view of your entire device landscape.
 
+## Privacy & Data Storage
+
+This application is designed with your privacy in mind. All file processing and analysis happens **entirely within your web browser**.
+
+-   **No Server Uploads**: The contents of your uploaded files are **never** sent to or stored on any server.
+-   **Local Session Storage**: To provide the "Session Persistence" feature (which remembers your files when you reopen the app), the file content is stored in your browser's `localStorage`. This data remains on your own computer and is not transmitted over the network.
+
 ## Key Features
 
 - **Session Persistence**: The application automatically saves your session. When you reopen the app, it pre-loads the files you were working with, allowing you to pick up right where you left off.
