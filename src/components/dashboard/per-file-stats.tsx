@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +26,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                         <TableRow>
                             <TableHead className="font-code">File Name</TableHead>
                             <TableHead className="text-center">Total Entries</TableHead>
+                            <TableHead className="text-center">Unique Machines</TableHead>
                             <TableHead className="text-center">
                                 <TooltipProvider>
                                     <Tooltip>
@@ -81,7 +83,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                     </Tooltip>
                                 </TooltipProvider>
                             </TableHead>
-                             <TableHead className="text-center">Total Unique Machines</TableHead>
+                             <TableHead className="text-center">Total In View</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -91,6 +93,7 @@ export function PerFileStats({ stats }: { stats: PerFileStatsType }) {
                                 <TableRow key={fileName}>
                                     <TableCell className="font-code font-medium">{fileName}</TableCell>
                                     <TableCell className="text-center">{fileStats.sourceRecordCount}</TableCell>
+                                    <TableCell className="text-center">{fileStats.uniqueSourceRecordCount}</TableCell>
                                     <TableCell className="text-center">{fileStats.present}</TableCell>
                                     <TableCell className="text-center">{fileStats.stale}</TableCell>
                                     <TableCell className="text-center">{fileStats.noDate}</TableCell>

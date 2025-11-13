@@ -1,3 +1,4 @@
+
 import { parse } from 'date-fns';
 import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord, PerFileStats } from './types';
 
@@ -138,13 +139,16 @@ function calculatePerFileStats(consolidatedView: ConsolidatedRecord[], configure
     staleThreshold.setDate(staleThreshold.getDate() - settings.disappearanceThresholdDays);
 
     configuredFiles.forEach(file => {
+        const uniqueSourceNames = new Set(file.records.map(r => r.computerName));
+
         const fileStats = { 
             present: 0, 
             stale: 0, 
             missing: 0, 
             noDate: 0, 
             totalInConsolidated: consolidatedView.length,
-            sourceRecordCount: file.data.length
+            sourceRecordCount: file.data.length,
+            uniqueSourceRecordCount: uniqueSourceNames.size
         };
         
         consolidatedView.forEach(record => {

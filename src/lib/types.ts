@@ -1,3 +1,4 @@
+
 export type ComputerRecord = {
   computerName: string;
   lastSeen?: Date;
@@ -51,6 +52,7 @@ export type PerFileStats = {
     noDate: number;
     totalInConsolidated: number;
     sourceRecordCount: number;
+    uniqueSourceRecordCount: number;
   };
 };
 
