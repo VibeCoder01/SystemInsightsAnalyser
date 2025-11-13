@@ -40,11 +40,22 @@ export type DisappearedMachineResult = {
   machines: ComputerRecord[];
 };
 
+export type PerFileStats = {
+  [fileName: string]: {
+    present: number;
+    stale: number;
+    missing: number;
+    noDate: number;
+    total: number;
+  };
+};
+
 export type AnalysisResults = {
   crossComparisons: CrossComparisonResult[];
   disappearedMachines: DisappearedMachineResult[];
   consolidatedView: ConsolidatedRecord[];
   trulyDisappearedCount: number;
+  perFileStats: PerFileStats;
 };
 
 export type Settings = {

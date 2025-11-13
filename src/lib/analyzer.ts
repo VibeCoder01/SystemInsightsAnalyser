@@ -1,5 +1,5 @@
 import { parse } from 'date-fns';
-import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord } from './types';
+import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord, PerFileStats } from './types';
 
 export function parseFileContent(content: string): { headers: string[]; data: Record<string, string>[] } {
   if (!content) {
@@ -132,11 +132,38 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
     return consolidatedRecords;
 }
 
+function calculatePerFileStats(consolidatedView: ConsolidatedRecord[], fileNames: string[], settings: Settings): PerFileStats {
+    const stats: PerFileStats = {};
+    const staleThreshold = new Date();
+    staleThreshold.setDate(staleThreshold.getDate() - settings.disappearanceThresholdDays);
+
+    fileNames.forEach(fileName => {
+        const fileStats = { present: 0, stale: 0, missing: 0, noDate: 0, total: consolidatedView.length };
+        
+        consolidatedView.forEach(record => {
+            const sourceDate = record.sources[fileName];
+            if (sourceDate === undefined) {
+                fileStats.missing++;
+            } else if (sourceDate.getTime() === 0) {
+                fileStats.noDate++;
+            } else if (sourceDate < staleThreshold) {
+                fileStats.stale++;
+            } else {
+                fileStats.present++;
+            }
+        });
+
+        stats[fileName] = fileStats;
+    });
+
+    return stats;
+}
+
 
 export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisResults {
   const configuredFiles = files.filter(f => f.isConfigured);
   if (configuredFiles.length < 1) {
-    return { crossComparisons: [], disappearedMachines: [], consolidatedView: [], trulyDisappearedCount: 0 };
+    return { crossComparisons: [], disappearedMachines: [], consolidatedView: [], trulyDisappearedCount: 0, perFileStats: {} };
   }
   
   configuredFiles.forEach(file => {
@@ -181,6 +208,8 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
   
   const trulyDisappearedMachines = consolidatedView.filter(record => !record.lastSeen || record.lastSeen < thresholdDate);
 
+  const perFileStats = calculatePerFileStats(consolidatedView, fileNames, settings);
 
-  return { crossComparisons, disappearedMachines: [], consolidatedView, trulyDisappearedCount: trulyDisappearedMachines.length };
+
+  return { crossComparisons, disappearedMachines: [], consolidatedView, trulyDisappearedCount: trulyDisappearedMachines.length, perFileStats };
 }

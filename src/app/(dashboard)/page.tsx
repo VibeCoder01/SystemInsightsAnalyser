@@ -10,6 +10,7 @@ import { FileUpload } from '@/components/dashboard/file-upload';
 import { FileConfigDialog } from '@/components/dashboard/file-config-dialog';
 import { AnalysisResults as AnalysisResultsDisplay } from '@/components/dashboard/analysis-results';
 import { ConsolidatedView } from '@/components/dashboard/consolidated-view';
+import { PerFileStats } from '@/components/dashboard/per-file-stats';
 import { FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -230,6 +231,8 @@ export default function DashboardPage() {
                     </Alert>
                 </CardContent>
             </Card>
+
+            <PerFileStats stats={analysisResults.perFileStats} />
 
             <ConsolidatedView 
                 results={analysisResults} 
