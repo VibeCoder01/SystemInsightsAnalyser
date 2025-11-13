@@ -15,15 +15,18 @@ export type ConsolidatedRecord = {
   };
 };
 
+export type Mappings = {
+  computerName: string | null;
+  lastSeen: string | null;
+  lastSeenFormat: string | null;
+};
+
 export type ParsedFile = {
   fileName: string;
+  content: string; // Full content for fingerprinting
   data: Record<string, string>[];
   headers: string[];
-  mappings: {
-    computerName: string | null;
-    lastSeen: string | null;
-    lastSeenFormat: string | null;
-  };
+  mappings: Mappings;
   isConfigured: boolean;
   records: ComputerRecord[];
 };

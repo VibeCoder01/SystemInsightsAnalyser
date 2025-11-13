@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
-import type { ParsedFile, AnalysisResults } from '@/lib/types';
+import type { ParsedFile, Mappings } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
 import { parseFileContent, runAnalysis } from '@/lib/analyzer';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,35 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
+const CONFIG_STORAGE_PREFIX = 'file-config-';
+
+// Creates a simple "fingerprint" of the file content to use as a storage key.
+// This avoids needing a full hash and is good enough for this use case.
+function getFileFingerprint(fileName: string, content: string): string {
+    const lines = content.trim().split('\n');
+    const header = lines[0] || '';
+    const firstDataLine = lines[1] || '';
+    const lastDataLine = lines.length > 1 ? lines[lines.length - 1] : '';
+    return `${CONFIG_STORAGE_PREFIX}${fileName}::${header}::${firstDataLine}::${lastDataLine}`;
+}
+
+function getStoredConfig(fingerprint: string): Mappings | null {
+    try {
+        const stored = localStorage.getItem(fingerprint);
+        return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+        console.error("Failed to read config from localStorage", e);
+        return null;
+    }
+}
+
+function setStoredConfig(fingerprint: string, mappings: Mappings) {
+    try {
+        localStorage.setItem(fingerprint, JSON.stringify(mappings));
+    } catch (e) {
+        console.error("Failed to save config to localStorage", e);
+    }
+}
 
 export default function DashboardPage() {
   const [files, setFiles] = useState<ParsedFile[]>([]);
@@ -52,14 +81,19 @@ export default function DashboardPage() {
       reader.onload = (e) => {
         const content = e.target?.result as string;
         const { headers, data } = parseFileContent(content);
+
+        const fingerprint = getFileFingerprint(file.name, content);
+        const storedMappings = getStoredConfig(fingerprint);
+
         setFiles(prev => [
           ...prev,
           {
             fileName: file.name,
+            content, // Store content for fingerprinting on save
             headers,
             data,
-            mappings: { computerName: null, lastSeen: null, lastSeenFormat: null },
-            isConfigured: false,
+            mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
+            isConfigured: !!storedMappings,
             records: [],
           },
         ]);
@@ -69,6 +103,12 @@ export default function DashboardPage() {
   };
 
   const handleSaveConfig = (updatedFile: ParsedFile) => {
+    // Save the configuration to localStorage
+    if (updatedFile.content) {
+        const fingerprint = getFileFingerprint(updatedFile.fileName, updatedFile.content);
+        setStoredConfig(fingerprint, updatedFile.mappings);
+    }
+    
     setFiles(prev => prev.map(f => f.fileName === updatedFile.fileName ? updatedFile : f));
   };
   
