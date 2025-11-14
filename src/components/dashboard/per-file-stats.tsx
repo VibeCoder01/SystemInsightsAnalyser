@@ -15,9 +15,31 @@ interface PerFileStatsProps {
 }
 
 const StatCell = ({ filtered, total, isFiltering }: { filtered: number, total: number, isFiltering: boolean }) => {
+    const showFiltered = isFiltering && filtered !== total;
+    const filteredOutCount = total - filtered;
+    
+    const content = <>{showFiltered ? `${filtered} / ${total}` : total}</>;
+
+    if (showFiltered && filteredOutCount > 0) {
+        return (
+            <TableCell className="text-center">
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className="cursor-help">{content}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{filteredOutCount} {filteredOutCount === 1 ? 'machine' : 'machines'} filtered out.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                 </TooltipProvider>
+            </TableCell>
+        );
+    }
+    
     return (
         <TableCell className="text-center">
-            {isFiltering && filtered !== total ? `${filtered} / ${total}` : total}
+            {content}
         </TableCell>
     );
 };
@@ -106,16 +128,15 @@ export function PerFileStats({ stats, totalStats, isFiltering }: PerFileStatsPro
                         {fileNames.map(fileName => {
                             const fileStats = stats[fileName];
                             const totalFileStats = totalStats[fileName];
+                            const showUniqueFiltered = isFiltering && fileStats.uniqueSourceRecordCount !== totalFileStats.uniqueSourceRecordCount;
                             return (
                                 <TableRow key={fileName}>
                                     <TableCell className="font-code font-medium">{fileName}</TableCell>
                                     <TableCell className="text-center">{fileStats.sourceRecordCount}</TableCell>
-                                    <TableCell className="text-center">{fileStats.uniqueSourceRecordCount}</TableCell>
+                                    <StatCell filtered={fileStats.uniqueSourceRecordCount} total={totalFileStats.uniqueSourceRecordCount} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.present} total={totalFileStats.present} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.stale} total={totalFileStats.stale} isFiltering={isFiltering} />
-                                    <TableCell className="text-center border-r">
-                                      {(isFiltering && fileStats.noDate !== totalFileStats.noDate) ? `${fileStats.noDate} / ${totalFileStats.noDate}` : totalFileStats.noDate}
-                                    </TableCell>
+                                    <StatCell filtered={fileStats.noDate} total={totalFileStats.noDate} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.missing} total={totalFileStats.missing} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.totalInView} total={totalFileStats.totalInView} isFiltering={isFiltering} />
                                 </TableRow>
