@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -23,7 +24,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https://',
         hostname: 'picsum.photos',
         port: '',
         pathname: '/**',
@@ -31,9 +32,9 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    // This allows all cross-origin requests from any subdomain of cloudworkstations.dev.
-    allowedDevOrigins: ["*.cloudworkstations.dev"],
   },
+  // This allows all cross-origin requests from any subdomain of cloudworkstations.dev.
+  allowedDevOrigins: ["*.cloudworkstations.dev"],
 };
 
 export default nextConfig;
