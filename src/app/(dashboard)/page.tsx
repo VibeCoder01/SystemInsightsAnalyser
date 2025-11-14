@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import type { ParsedFile, Mappings, AnalysisResults, ConsolidatedRecord } from '@/lib/types';
+import type { ParsedFile, Mappings, AnalysisResults, ConsolidatedRecord, PreviousFileSummary } from '@/lib/types';
 import { useSettings } from '@/hooks/use-settings';
 import { parseFileContent, runAnalysis, recalculateStatsFromView } from '@/lib/analyzer';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { FileConfigDialog } from '@/components/dashboard/file-config-dialog';
 import { AnalysisResults as AnalysisResultsDisplay } from '@/components/dashboard/analysis-results';
 import { ConsolidatedView } from '@/components/dashboard/consolidated-view';
 import { PerFileStats } from '@/components/dashboard/per-file-stats';
+import { PreviousSessionFiles } from '@/components/dashboard/previous-session-files';
 import { FileText, Settings, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const CONFIG_STORAGE_PREFIX = 'file-config-';
+const LAST_USED_FILES_KEY = 'system-insights-analyzer-last-files';
 
 // A simple and fast string hashing function (djb2 algorithm)
 function hashString(str: string): number {
@@ -72,9 +74,21 @@ export default function DashboardPage() {
   const [filterText, setFilterText] = useState('');
   const [filterMode, setFilterMode] = useState<'simple' | 'regex'>('simple');
   const [regexError, setRegexError] = useState<string | null>(null);
+  const [previousFiles, setPreviousFiles] = useState<PreviousFileSummary[]>([]);
 
   const { settings } = useSettings();
   const { toast } = useToast();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LAST_USED_FILES_KEY);
+      if (stored) {
+        setPreviousFiles(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Failed to load previous files summary", e);
+    }
+  }, []);
 
   const handleFilesAdded = (newFiles: File[]) => {
     const existingFileNames = new Set(files.map(f => f.fileName));
@@ -141,8 +155,17 @@ export default function DashboardPage() {
     setFilterText(''); // Reset filter on new analysis
     // Use a short timeout to allow the UI to update to the loading state
     setTimeout(() => {
-        const results = runAnalysis(files, settings);
-        setAnalysisResults(results);
+        try {
+            const results = runAnalysis(files, settings);
+            setAnalysisResults(results);
+        } catch (e: any) {
+            console.error("Analysis failed", e);
+            toast({
+                variant: "destructive",
+                title: "Analysis Failed",
+                description: e.message || "An unexpected error occurred during analysis."
+            });
+        }
         setIsLoading(false);
     }, 500);
   };
@@ -166,9 +189,9 @@ export default function DashboardPage() {
             .replace(/\\\*/g, '.*') // Convert * to .*
             .replace(/\\\?/g, '.') + // Convert ? to .
           '$';
-        regex = new RegExp(pattern, 'i'); // Case-insensitive
+        regex = new RegExp(pattern, settings.caseSensitive ? '' : 'i');
       } else {
-        regex = new RegExp(filterText, 'i');
+        regex = new RegExp(filterText, settings.caseSensitive ? '' : 'i');
       }
       setRegexError(null);
     } catch (e: any) {
@@ -178,7 +201,7 @@ export default function DashboardPage() {
     
     return analysisResults.consolidatedView.filter(record => regex.test(record.computerName));
 
-  }, [analysisResults, filterText, filterMode]);
+  }, [analysisResults, filterText, filterMode, settings.caseSensitive]);
 
   const isFiltering = useMemo(() => filterText.length > 0 && regexError === null, [filterText, regexError]);
 
@@ -210,6 +233,10 @@ export default function DashboardPage() {
           Upload, configure, and analyze your computer management data to find discrepancies.
         </p>
       </header>
+
+      {files.length === 0 && previousFiles.length > 0 && (
+         <PreviousSessionFiles files={previousFiles} />
+      )}
 
       <motion.div layout>
         <Card>

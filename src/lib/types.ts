@@ -68,3 +68,9 @@ export type Settings = {
   disappearanceThresholdDays: number;
   caseSensitive: boolean;
 };
+
+export type PreviousFileSummary = {
+    fileName: string;
+    totalLines: number;
+    uniqueMachines: number;
+}

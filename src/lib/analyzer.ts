@@ -1,6 +1,8 @@
 
 import { parse } from 'date-fns';
-import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord, PerFileStats } from './types';
+import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossComparisonResult, ConsolidatedRecord, PerFileStats, PreviousFileSummary } from './types';
+
+const LAST_USED_FILES_KEY = 'system-insights-analyzer-last-files';
 
 export function parseFileContent(content: string): { headers: string[]; data: Record<string, string>[] } {
   if (!content) {
@@ -170,6 +172,19 @@ export function recalculateStatsFromView(view: ConsolidatedRecord[], configuredF
     return stats;
 }
 
+function saveFileSummaries(files: ParsedFile[]) {
+    try {
+        const summaries: PreviousFileSummary[] = files.map(file => ({
+            fileName: file.fileName,
+            totalLines: file.data.length,
+            uniqueMachines: new Set(file.records.map(r => r.computerName)).size
+        }));
+        localStorage.setItem(LAST_USED_FILES_KEY, JSON.stringify(summaries));
+    } catch (error) {
+        console.error("Could not save file summaries to local storage", error);
+    }
+}
+
 
 export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisResults {
   const configuredFiles = files.filter(f => f.isConfigured);
@@ -185,6 +200,8 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
         file.records = []; 
       }
   });
+
+  saveFileSummaries(configuredFiles);
   
   const allRecords: ComputerRecord[] = configuredFiles.flatMap(f => f.records);
   const fileNames = configuredFiles.map(f => f.fileName);
@@ -218,12 +235,14 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
         const missingInTarget = Array.from(uniqueRecordsA.values()).filter(r => !namesB.has(r.computerName));
         const missingInSource = Array.from(uniqueRecordsB.values()).filter(r => !namesA.has(r.computerName));
 
-        crossComparisons.push({
-          sourceFile: fileA.fileName,
-          targetFile: fileB.fileName,
-          missingInTarget,
-          missingInSource,
-        });
+        if (missingInSource.length > 0 || missingInTarget.length > 0) {
+            crossComparisons.push({
+              sourceFile: fileA.fileName,
+              targetFile: fileB.fileName,
+              missingInTarget,
+              missingInSource,
+            });
+        }
       }
     }
   }
