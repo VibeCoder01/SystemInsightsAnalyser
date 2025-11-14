@@ -17,7 +17,7 @@ interface PerFileStatsProps {
 const StatCell = ({ filtered, total, isFiltering }: { filtered: number, total: number, isFiltering: boolean }) => {
     return (
         <TableCell className="text-center">
-            {isFiltering ? `${filtered} / ${total}` : total}
+            {isFiltering && filtered !== total ? `${filtered} / ${total}` : total}
         </TableCell>
     );
 };
@@ -114,7 +114,7 @@ export function PerFileStats({ stats, totalStats, isFiltering }: PerFileStatsPro
                                     <StatCell filtered={fileStats.present} total={totalFileStats.present} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.stale} total={totalFileStats.stale} isFiltering={isFiltering} />
                                     <TableCell className="text-center border-r">
-                                      {isFiltering ? `${fileStats.noDate} / ${totalFileStats.noDate}` : totalFileStats.noDate}
+                                      {(isFiltering && fileStats.noDate !== totalFileStats.noDate) ? `${fileStats.noDate} / ${totalFileStats.noDate}` : totalFileStats.noDate}
                                     </TableCell>
                                     <StatCell filtered={fileStats.missing} total={totalFileStats.missing} isFiltering={isFiltering} />
                                     <StatCell filtered={fileStats.totalInView} total={totalFileStats.totalInView} isFiltering={isFiltering} />
