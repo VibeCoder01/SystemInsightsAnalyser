@@ -36,11 +36,10 @@ The application will now be running and accessible at `http://localhost:9002`.
 This application is designed with your privacy in mind. All file processing and analysis happens **entirely within your web browser**.
 
 -   **No Server Uploads**: The contents of your uploaded files are **never** sent to or stored on any server.
--   **Local Session Storage**: To provide the "Session Persistence" feature (which remembers your files when you reopen the app), the file content is stored in your browser's `localStorage`. This data remains on your own computer and is not transmitted over the network.
+-   **Local Configuration Storage**: To provide the "Intelligent Configuration Memory" feature, column mappings and other settings are stored in your browser's `localStorage`. This data remains on your own computer and is not transmitted over the network.
 
 ## Key Features
 
-- **Session Persistence**: The application automatically saves your session. When you reopen the app, it pre-loads the files you were working with, allowing you to pick up right where you left off.
 - **Intelligent Configuration Memory**: The app remembers the column mappings for files you've configured before. If you upload a file with the same content again, it will be automatically configured, saving you repetitive setup work.
 - **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format. The app prevents uploading files with the same name to avoid confusion.
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
@@ -79,8 +78,6 @@ DEV-MACHINE,2023-11-02T08:00:00Z
 ### 2. Step 1: Upload Files
 
 Drag and drop your prepared data files onto the upload area, or use the "Browse Files" button to select them. You can add multiple files from different sources. You cannot upload two files with the exact same name.
-
-*(Note: The application will remember the files from your last session and automatically load them for you.)*
 
 ### 3. Step 2: Configure Files
 
@@ -139,3 +136,5 @@ Navigate to the **Settings** page from the sidebar to fine-tune the analysis heu
 
 - **Disappeared Machine Threshold (Days)**: Change the number of days of inactivity before a machine is flagged as "disappeared".
 - **Case-Sensitive Analysis**: Toggle whether machine names like "PC-01" and "pc-01" are treated as the same device.
+
+    

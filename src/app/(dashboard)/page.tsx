@@ -19,7 +19,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 const CONFIG_STORAGE_PREFIX = 'file-config-';
-const SESSION_FILES_KEY = 'system-insights-analyzer-files';
 
 // A simple and fast string hashing function (djb2 algorithm)
 function hashString(str: string): number {
@@ -55,48 +54,6 @@ function setStoredConfig(key: string, mappings: Mappings) {
     }
 }
 
-type StoredFile = {
-    fileName: string;
-    content: string;
-};
-
-// Function to process a raw file object or a stored file object
-function processAndAddFile(file: File | StoredFile, existingFiles: ParsedFile[], setFiles: React.Dispatch<React.SetStateAction<ParsedFile[]>>) {
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const fileName = 'name' in file ? file.name : file.fileName;
-
-        if (existingFiles.some(f => f.fileName === fileName)) {
-          return;
-        }
-
-        const { headers, data } = parseFileContent(content);
-        const storageKey = getFileStorageKey(fileName, content);
-        const storedMappings = getStoredConfig(storageKey);
-
-        setFiles(prev => [
-            ...prev,
-            {
-                fileName: fileName,
-                content,
-                headers,
-                data,
-                mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
-                isConfigured: !!storedMappings,
-                records: [],
-            },
-        ]);
-    };
-    
-    if ('size' in file) { // It's a File object
-      reader.readAsText(file);
-    } else { // It's a StoredFile object
-      const blob = new Blob([file.content], { type: 'text/plain' });
-      reader.readAsText(blob);
-    }
-}
 
 function isTrulyDisappeared(date: Date | null, thresholdDays: number): boolean {
     if (!date) return true; // Disappeared if never seen
@@ -118,60 +75,6 @@ export default function DashboardPage() {
 
   const { settings } = useSettings();
   const { toast } = useToast();
-
-  // Effect to load files from localStorage on initial mount
-  useEffect(() => {
-    try {
-      const storedFilesRaw = localStorage.getItem(SESSION_FILES_KEY);
-      if (storedFilesRaw) {
-        const storedFiles: StoredFile[] = JSON.parse(storedFilesRaw);
-        if (Array.isArray(storedFiles)) {
-          // Use a temporary array to batch state updates if needed, though React 18 batches automatically
-          const initialFiles: ParsedFile[] = [];
-          storedFiles.forEach(storedFile => {
-            const { headers, data } = parseFileContent(storedFile.content);
-            const storageKey = getFileStorageKey(storedFile.fileName, storedFile.content);
-            const storedMappings = getStoredConfig(storageKey);
-            initialFiles.push({
-              fileName: storedFile.fileName,
-              content: storedFile.content,
-              headers,
-              data,
-              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
-              isConfigured: !!storedMappings,
-              records: [],
-            });
-          });
-          setFiles(initialFiles);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to load files from session storage:", error);
-    }
-  }, []);
-
-  // Effect to save files to localStorage whenever they change
-  useEffect(() => {
-    if (files.length === 0) {
-        localStorage.removeItem(SESSION_FILES_KEY);
-        return;
-    }
-    
-    try {
-        const filesToStore: StoredFile[] = files.map(({ fileName, content }) => ({ fileName, content }));
-        localStorage.setItem(SESSION_FILES_KEY, JSON.stringify(filesToStore));
-    } catch (error: any) {
-        if (error.name === 'QuotaExceededError') {
-            toast({
-                variant: "destructive",
-                title: "Storage limit exceeded",
-                description: "One or more files are too large to be saved for the next session. They will need to be re-uploaded.",
-            });
-        }
-        console.error("Failed to save files to session storage:", error);
-    }
-  }, [files, toast]);
-
 
   const handleFilesAdded = (newFiles: File[]) => {
     const existingFileNames = new Set(files.map(f => f.fileName));
@@ -216,7 +119,7 @@ export default function DashboardPage() {
 
 
   const handleSaveConfig = (updatedFile: ParsedFile) => {
-    // Save the configuration to localStorage
+    // Save the configuration to localStorage against a hash of the content
     if (updatedFile.content) {
         const storageKey = getFileStorageKey(updatedFile.fileName, updatedFile.content);
         setStoredConfig(storageKey, updatedFile.mappings);
@@ -473,5 +376,7 @@ export default function DashboardPage() {
     </main>
   );
 }
+
+    
 
     
