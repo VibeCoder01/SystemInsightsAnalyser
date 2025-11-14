@@ -8,7 +8,21 @@ import { Check, HelpCircle, X, History } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 
-export function PerFileStats({ stats, isFiltering }: { stats: PerFileStatsType, isFiltering: boolean }) {
+interface PerFileStatsProps {
+    stats: PerFileStatsType;
+    totalStats: PerFileStatsType;
+    isFiltering: boolean;
+}
+
+const StatCell = ({ filtered, total, isFiltering }: { filtered: number, total: number, isFiltering: boolean }) => {
+    return (
+        <TableCell className="text-center">
+            {isFiltering ? `${filtered} / ${total}` : total}
+        </TableCell>
+    );
+};
+
+export function PerFileStats({ stats, totalStats, isFiltering }: PerFileStatsProps) {
     const fileNames = Object.keys(stats);
     if (fileNames.length === 0) return null;
     const asterisk = isFiltering ? <span className="text-primary">*</span> : null;
@@ -19,7 +33,7 @@ export function PerFileStats({ stats, isFiltering }: { stats: PerFileStatsType, 
                 <CardTitle>Per-File Statistics {asterisk}</CardTitle>
                 <CardDescription>
                     Breakdown of machine statuses within each file.
-                    {isFiltering && " Values marked with * are based on the filtered view above."}
+                    {isFiltering && " Values marked with * are shown as (filtered / total) and are based on the filtered view above."}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -91,16 +105,19 @@ export function PerFileStats({ stats, isFiltering }: { stats: PerFileStatsType, 
                     <TableBody>
                         {fileNames.map(fileName => {
                             const fileStats = stats[fileName];
+                            const totalFileStats = totalStats[fileName];
                             return (
                                 <TableRow key={fileName}>
                                     <TableCell className="font-code font-medium">{fileName}</TableCell>
                                     <TableCell className="text-center">{fileStats.sourceRecordCount}</TableCell>
                                     <TableCell className="text-center">{fileStats.uniqueSourceRecordCount}</TableCell>
-                                    <TableCell className="text-center">{fileStats.present}</TableCell>
-                                    <TableCell className="text-center">{fileStats.stale}</TableCell>
-                                    <TableCell className="text-center border-r">{fileStats.noDate}</TableCell>
-                                    <TableCell className="text-center">{fileStats.missing}</TableCell>
-                                    <TableCell className="text-center">{fileStats.totalInView}</TableCell>
+                                    <StatCell filtered={fileStats.present} total={totalFileStats.present} isFiltering={isFiltering} />
+                                    <StatCell filtered={fileStats.stale} total={totalFileStats.stale} isFiltering={isFiltering} />
+                                    <TableCell className="text-center border-r">
+                                      {isFiltering ? `${fileStats.noDate} / ${totalFileStats.noDate}` : totalFileStats.noDate}
+                                    </TableCell>
+                                    <StatCell filtered={fileStats.missing} total={totalFileStats.missing} isFiltering={isFiltering} />
+                                    <StatCell filtered={fileStats.totalInView} total={totalFileStats.totalInView} isFiltering={isFiltering} />
                                 </TableRow>
                             );
                         })}

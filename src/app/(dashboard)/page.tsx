@@ -431,7 +431,13 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            {displayedStats && <PerFileStats stats={displayedStats} isFiltering={isFiltering} />}
+            {displayedStats && (
+              <PerFileStats 
+                stats={displayedStats} 
+                totalStats={analysisResults.perFileStats}
+                isFiltering={isFiltering} 
+              />
+            )}
 
             <ConsolidatedView 
                 records={filteredRecords}
