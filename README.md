@@ -36,7 +36,11 @@ The application will now be running and accessible at `http://localhost:9002`.
 This application is designed with your privacy in mind. All file processing and analysis happens **entirely within your web browser**.
 
 -   **No Server Uploads**: The contents of your uploaded files are **never** sent to or stored on any server.
--   **Local Configuration Storage**: To provide the "Intelligent Configuration Memory" feature, column mappings and other settings are stored in your browser's `localStorage`. This data remains on your own computer and is not transmitted over the network.
+-   **Local Metadata Storage**: To enhance your experience, some metadata is stored in your browser's `localStorage`. This includes:
+    -   Your preferences from the Settings page.
+    -   Column mappings for previously configured files (to enable automatic configuration).
+    -   A summary of files used in your last session.
+-   **No File Content is Stored**: The actual contents of your data files are **never** saved to `localStorage` or any other persistent storage in the browser.
 
 ## Key Features
 
@@ -136,5 +140,3 @@ Navigate to the **Settings** page from the sidebar to fine-tune the analysis heu
 
 - **Disappeared Machine Threshold (Days)**: Change the number of days of inactivity before a machine is flagged as "disappeared".
 - **Case-Sensitive Analysis**: Toggle whether machine names like "PC-01" and "pc-01" are treated as the same device.
-
-    
