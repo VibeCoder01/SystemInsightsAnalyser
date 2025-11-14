@@ -152,17 +152,25 @@ export default function DashboardPage() {
 
   // Effect to save files to localStorage whenever they change
   useEffect(() => {
+    if (files.length === 0) {
+        localStorage.removeItem(SESSION_FILES_KEY);
+        return;
+    }
+    
     try {
-      if (files.length > 0) {
         const filesToStore: StoredFile[] = files.map(({ fileName, content }) => ({ fileName, content }));
         localStorage.setItem(SESSION_FILES_KEY, JSON.stringify(filesToStore));
-      } else {
-        localStorage.removeItem(SESSION_FILES_KEY);
-      }
-    } catch (error) {
-      console.error("Failed to save files to session storage:", error);
+    } catch (error: any) {
+        if (error.name === 'QuotaExceededError') {
+            toast({
+                variant: "destructive",
+                title: "Storage limit exceeded",
+                description: "One or more files are too large to be saved for the next session. They will need to be re-uploaded.",
+            });
+        }
+        console.error("Failed to save files to session storage:", error);
     }
-  }, [files]);
+  }, [files, toast]);
 
 
   const handleFilesAdded = (newFiles: File[]) => {
@@ -465,3 +473,5 @@ export default function DashboardPage() {
     </main>
   );
 }
+
+    
