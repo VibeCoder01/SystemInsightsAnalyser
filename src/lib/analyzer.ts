@@ -200,9 +200,23 @@ export function runAnalysis(files: ParsedFile[], settings: Settings): AnalysisRe
 
         const namesA = new Set(fileA.records.map(r => r.computerName));
         const namesB = new Set(fileB.records.map(r => r.computerName));
+        
+        const uniqueRecordsA = new Map<string, ComputerRecord>();
+        fileA.records.forEach(r => {
+            if (!uniqueRecordsA.has(r.computerName)) {
+                uniqueRecordsA.set(r.computerName, r);
+            }
+        });
 
-        const missingInTarget = fileA.records.filter(r => !namesB.has(r.computerName));
-        const missingInSource = fileB.records.filter(r => !namesA.has(r.computerName));
+        const uniqueRecordsB = new Map<string, ComputerRecord>();
+        fileB.records.forEach(r => {
+            if (!uniqueRecordsB.has(r.computerName)) {
+                uniqueRecordsB.set(r.computerName, r);
+            }
+        });
+
+        const missingInTarget = Array.from(uniqueRecordsA.values()).filter(r => !namesB.has(r.computerName));
+        const missingInSource = Array.from(uniqueRecordsB.values()).filter(r => !namesA.has(r.computerName));
 
         crossComparisons.push({
           sourceFile: fileA.fileName,
