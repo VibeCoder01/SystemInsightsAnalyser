@@ -45,7 +45,7 @@ This application is designed with your privacy in mind. All file processing and 
 - **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format. The app prevents uploading files with the same name to avoid confusion.
 - **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
-- **Cross-System Discrepancy Analysis**: See detailed reports showing which machines are present in one data source but missing in another, helping you to synchronize your management systems.
+- **Cross-System Discrepancy Analysis**: See detailed reports showing which unique machines are present in one data source but missing in another, helping you to synchronize your management systems. Duplicate entries within a file are ignored for this comparison.
 - **Dynamic Per-File Statistics**: As you filter the main consolidated view, the per-file statistics table dynamically updates to reflect the counts and statuses of only the machines in your filtered results. This allows for interactive "what-if" analysis. When a filter is active, affected stats are shown in a `filtered / total` format, with a tooltip indicating how many machines were filtered out.
 - **Intelligent Date Format Detection**: The application automatically analyzes your date columns and suggests the correct format, saving you time and preventing parsing errors. You can still manually adjust the format if needed.
 - **Flexible Filtering (Wildcards & Regex)**: Filter the main results view with simple wildcards (`*` and `?`) or powerful regular expressions to quickly find specific machines.
@@ -131,7 +131,7 @@ After the analysis is complete, you will see a detailed breakdown:
     - <span style="color:orange;">✔</span> **Amber Check**: Present, but the record is "stale" (older than the disappearance threshold).
     - <span style="color:grey;">?</span> **Grey Question Mark**: Present in the file, but no date information was provided.
     - <span style="color:red;">✖</span> **Red X**: Not present in the file.
-- **Cross-System Discrepancies**: This is a collapsed section that you can expand. It shows a pairwise comparison between your files, highlighting machines that exist in one file but are missing in the other.
+- **Cross-System Discrepancies**: This is a collapsed section that you can expand. It shows a pairwise comparison between your files, highlighting the unique machines that exist in one file but are missing in the other.
 
 ### 6. Adjust Settings
 
