@@ -46,7 +46,7 @@ This application is designed with your privacy in mind. All file processing and 
 
 - **Intelligent Configuration Memory**: The app remembers the column mappings for files you've configured before. If you upload a file with the same content again, it will be automatically configured, saving you repetitive setup work.
 - **Multi-Source Data Ingestion**: Upload data from multiple systems in simple `.csv` or `.txt` format. The app prevents uploading files with the same name to avoid confusion.
-- **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source.
+- **Consolidated Machine View**: Get a single, unified list of all unique machines found across all your files. This view shows the most recent timestamp a machine was seen by *any* system, preventing false positives from a single stale data source. It can also display consolidated OS, Last User, Make, and Model information if you map those fields.
 - **"Truly Disappeared" Machine Detection**: By looking at the last seen date across all sources, the app intelligently flags machines that haven't been seen anywhere for a configurable period, helping you identify devices that are genuinely offline or decommissioned.
 - **Cross-System Discrepancy Analysis**: See detailed reports showing which unique machines are present in one data source but missing in another, helping you to synchronize your management systems. Duplicate entries within a file are ignored for this comparison.
 - **Dynamic Per-File Statistics**: As you filter the main consolidated view, the per-file statistics table dynamically updates to reflect the counts and statuses of only the machines in your filtered results. This allows for interactive "what-if" analysis. When a filter is active, affected stats are shown in a `filtered / total` format, with a tooltip indicating how many machines were filtered out.
@@ -60,23 +60,23 @@ This application is designed with your privacy in mind. All file processing and 
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
-- **Enhanced CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file. The export now includes a dedicated column indicating if a machine is considered "disappeared," making it perfect for offline analysis and reporting.
+- **Enhanced CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file. The export now includes a dedicated column indicating if a machine is considered "disappeared," as well as detailed columns for OS, Last User, Make, and Model from each source file.
 
 ## How to Use the Application
 
 ### 1. Prepare Your Data
 
-For each management system (e.g., AD, SCCM), export a report containing at least a list of computer names. For best results, also include a "last seen" or "last logon" timestamp.
+For each management system (e.g., AD, SCCM), export a report containing at least a list of computer names. For best results, also include a "last seen" or "last logon" timestamp and other relevant data like OS, Last User, Make, and Model.
 
 - **Format**: The file should be a comma-separated value (`.csv`) or plain text (`.txt`) file.
 - **Header**: The first line of the file must be a header row containing the column names (e.g., `ComputerName,LastLogonDate`).
 
 **Example `ad_export.csv`:**
 ```csv
-Name,LastSeen
-CORP-PC-01,10/15/2023 10:30
-SALES-LAPTOP-05,11/01/2023
-DEV-MACHINE,2023-11-02T08:00:00Z
+Name,LastSeen,OperatingSystem
+CORP-PC-01,10/15/2023 10:30,Windows 11
+SALES-LAPTOP-05,11/01/2023,Windows 10
+DEV-MACHINE,2023-11-02T08:00:00Z,Ubuntu 22.04
 ```
 
 ### 2. Step 1: Upload Files
@@ -89,9 +89,13 @@ For each file you've uploaded, you need to tell the analyzer how to interpret it
 
 - Click the **"Configure"** button on a file card.
 - **Automatic Configuration**: If you've uploaded a file with the same content before, the app will automatically apply your previous settings. You can still click "Edit" to change them.
-- In the dialog, select the column from your file that contains the **Computer Name**. This is required.
-- Select the column that contains the **Last Seen Date**. This is optional. If no date column is available, select "None".
-- A preview of your data is shown to help you make the correct selections.
+- In the dialog, select the columns from your file. A preview of your data is shown to help you make the correct selections.
+  - **Computer Name**: Required.
+  - **Last Seen Date**: Optional.
+  - **Operating System**: Optional.
+  - **Last User**: Optional.
+  - **Make**: Optional.
+  - **Model**: Optional.
 - Click **"Save Configuration"**.
 
 A green background on the file card indicates it's configured and ready.
@@ -123,8 +127,9 @@ After the analysis is complete, you will see a detailed breakdown:
   - **Total In View**: The number of machines currently visible in the filtered Consolidated View.
 - **Consolidated Machine View**: This is the primary result. It shows a master list of every unique machine across all files.
   - **Filter**: Use the filter bar to search for machines. You can use simple wildcards (`*` for multiple characters, `?` for a single character) or switch to Regex mode for advanced filtering. As you filter, the Analysis Summary and Per-File Statistics will update in real-time.
-  - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card. The export includes a dedicated column indicating whether each machine is considered "disappeared".
+  - **Export**: You can export the current (filtered) view to CSV using the button at the top of the card. The export includes a dedicated column indicating whether each machine is "disappeared" and detailed columns for each mapped field from each source file.
   - **Machine Name**: The name of the computer. A row with a light orange background indicates the machine is "truly disappeared."
+  - **OS / Last User / Make / Model**: These columns will appear if they are mapped in any file. They show a consolidated, unique list of values found for that machine across all sources.
   - **Last Seen (Any)**: The absolute latest timestamp this machine was seen in *any* of the files, displayed in `dd MMM yyyy` format.
   - **Last Seen Source**: The name of the file where the latest sighting occurred.
   - **Per-File Status**: Each subsequent column represents one of your uploaded files. An icon indicates the machine's status in that file:
