@@ -4,20 +4,48 @@ import type { ParsedFile, ComputerRecord, AnalysisResults, Settings, CrossCompar
 
 const LAST_USED_FILES_KEY = 'system-insights-analyzer-last-files';
 
+function robustParse(line: string): string[] {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+                current += '"';
+                i++; // Skip the next quote
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    values.push(current.trim());
+    return values;
+}
+
+
 export function parseFileContent(content: string): { headers: string[]; data: Record<string, string>[] } {
   if (!content) {
     return { headers: [], data: [] };
   }
-  const rows = content.trim().split('\n');
+  const rows = content.trim().split('\n').filter(row => row.trim() !== '');
   if (rows.length === 0) {
     return { headers: [], data: [] };
   }
 
-  const headers = rows.shift()?.split(',').map(h => h.trim()) || [];
+  const headerLine = rows.shift() || '';
+  const headers = robustParse(headerLine).map(h => h.trim().replace(/^"|"$/g, ''));
+
   const data = rows.map(row => {
-    const values = row.split(',');
+    const values = robustParse(row);
     return headers.reduce((obj, header, index) => {
-      obj[header] = values[index]?.trim() || '';
+      // Clean quotes from the beginning and end of the value
+      obj[header] = values[index]?.trim().replace(/^"|"$/g, '') || '';
       return obj;
     }, {} as Record<string, string>);
   });
