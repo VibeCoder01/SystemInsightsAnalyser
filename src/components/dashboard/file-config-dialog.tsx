@@ -32,6 +32,7 @@ const SAMPLE_SIZE = 20; // Number of rows to use for date guessing
 export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDialogProps) {
   const [computerNameCol, setComputerNameCol] = useState<string | null>(null);
   const [lastSeenCol, setLastSeenCol] = useState<string | null>(null);
+  const [osCol, setOsCol] = useState<string | null>(null);
   const [lastSeenFormat, setLastSeenFormat] = useState<string | null>('');
 
   // Auto-guess date format when lastSeenCol changes
@@ -58,6 +59,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
       setComputerNameCol(file.mappings.computerName);
       setLastSeenCol(file.mappings.lastSeen);
       setLastSeenFormat(file.mappings.lastSeenFormat || '');
+      setOsCol(file.mappings.os);
     }
   }, [file]);
 
@@ -82,6 +84,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
           computerName: computerNameCol,
           lastSeen: lastSeenCol,
           lastSeenFormat: lastSeenFormat,
+          os: osCol,
         },
         isConfigured: true,
       };
@@ -133,7 +136,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
               </Select>
                <p className="text-xs text-muted-foreground mt-1">Select 'None' if this file does not contain a 'last seen' date.</p>
             </div>
-             {showDateFormatInput && (
+            {showDateFormatInput && (
               <div>
                 <Label htmlFor="date-format-str">Date Format (Auto-detected)</Label>
                 <Input
@@ -153,6 +156,21 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                 </p>
               </div>
             )}
+            <div>
+              <Label htmlFor="os-col">Operating System Column (Optional)</Label>
+              <Select value={osCol || 'none'} onValueChange={setOsCol}>
+                <SelectTrigger id="os-col">
+                  <SelectValue placeholder="Select a column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {file.headers.map(header => (
+                    <SelectItem key={header} value={header}>{header}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+               <p className="text-xs text-muted-foreground mt-1">Select 'None' if this file does not contain OS information.</p>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>File Preview</Label>

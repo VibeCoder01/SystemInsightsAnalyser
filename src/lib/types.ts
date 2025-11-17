@@ -3,6 +3,7 @@ export type ComputerRecord = {
   computerName: string;
   lastSeen?: Date;
   domain?: string;
+  os?: string;
   source: string; // The file name it came from
   [key: string]: any;
 };
@@ -11,6 +12,7 @@ export type ConsolidatedRecord = {
   computerName: string;
   lastSeen: Date | null;
   lastSeenSource: string | null;
+  os: string | null;
   sources: {
     [fileName: string]: Date | undefined;
   };
@@ -20,6 +22,7 @@ export type Mappings = {
   computerName: string | null;
   lastSeen: string | null;
   lastSeenFormat: string | null;
+  os: string | null;
 };
 
 export type ParsedFile = {

@@ -120,7 +120,7 @@ export default function DashboardPage() {
               content,
               headers,
               data,
-              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null },
+              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null, os: null },
               isConfigured: !!storedMappings,
               records: [],
             },
@@ -403,7 +403,3 @@ export default function DashboardPage() {
     </main>
   );
 }
-
-    
-
-    

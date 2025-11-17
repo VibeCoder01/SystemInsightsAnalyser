@@ -83,10 +83,11 @@ export function ConsolidatedView({
   };
 
   const handleExport = () => {
-    const csvHeaders = ['"Machine Name"', '"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
+    const csvHeaders = ['"Machine Name"', '"OS"', '"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
     
     const csvRows = records.map(record => {
       const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
+      const os = `"${record.os || ''}"`;
       const disappeared = `"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`;
       const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
       const lastSeenSource = record.lastSeenSource ? `"${record.lastSeenSource}"` : '""';
@@ -101,7 +102,7 @@ export function ConsolidatedView({
         return '""'; // Not present
       });
 
-      return [machineName, disappeared, lastSeen, lastSeenSource, ...sourceDates].join(',');
+      return [machineName, os, disappeared, lastSeen, lastSeenSource, ...sourceDates].join(',');
     });
 
     const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
@@ -165,6 +166,7 @@ export function ConsolidatedView({
             <TableHeader className="sticky top-0 z-20">
               <TableRow className="bg-card [&>th]:bg-card">
                 <TableHead className="w-[200px] font-code">Machine Name</TableHead>
+                <TableHead>OS</TableHead>
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
                 {fileNames.map(name => (
@@ -189,6 +191,7 @@ export function ConsolidatedView({
                                    <span>{record.computerName}</span>
                                 </div>
                             </TableCell>
+                            <TableCell className="text-xs py-2 px-4">{record.os}</TableCell>
                             <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
