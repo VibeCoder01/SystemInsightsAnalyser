@@ -120,7 +120,7 @@ export default function DashboardPage() {
               content,
               headers,
               data,
-              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null, os: null },
+              mappings: storedMappings || { computerName: null, lastSeen: null, lastSeenFormat: null, os: null, lastUser: null },
               isConfigured: !!storedMappings,
               records: [],
             },
@@ -173,6 +173,7 @@ export default function DashboardPage() {
   const configuredFileCount = useMemo(() => files.filter(f => f.isConfigured).length, [files]);
 
   const showOsColumn = useMemo(() => files.some(f => f.isConfigured && f.mappings.os && f.mappings.os !== 'none'), [files]);
+  const showLastUserColumn = useMemo(() => files.some(f => f.isConfigured && f.mappings.lastUser && f.mappings.lastUser !== 'none'), [files]);
 
   const filteredRecords = useMemo(() => {
     if (!analysisResults) return [];
@@ -391,6 +392,7 @@ export default function DashboardPage() {
                 regexError={regexError}
                 isFiltering={isFiltering}
                 showOsColumn={showOsColumn}
+                showLastUserColumn={showLastUserColumn}
             />
 
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />

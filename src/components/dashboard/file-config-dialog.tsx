@@ -33,6 +33,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
   const [computerNameCol, setComputerNameCol] = useState<string | null>(null);
   const [lastSeenCol, setLastSeenCol] = useState<string | null>(null);
   const [osCol, setOsCol] = useState<string | null>(null);
+  const [lastUserCol, setLastUserCol] = useState<string | null>(null);
   const [lastSeenFormat, setLastSeenFormat] = useState<string | null>('');
 
   // Auto-guess date format when lastSeenCol changes
@@ -60,6 +61,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
       setLastSeenCol(file.mappings.lastSeen);
       setLastSeenFormat(file.mappings.lastSeenFormat || '');
       setOsCol(file.mappings.os);
+      setLastUserCol(file.mappings.lastUser);
     }
   }, [file]);
 
@@ -85,6 +87,7 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
           lastSeen: lastSeenCol,
           lastSeenFormat: lastSeenFormat,
           os: osCol,
+          lastUser: lastUserCol,
         },
         isConfigured: true,
       };
@@ -170,6 +173,21 @@ export function FileConfigDialog({ file, isOpen, onClose, onSave }: FileConfigDi
                 </SelectContent>
               </Select>
                <p className="text-xs text-muted-foreground mt-1">Select 'None' if this file does not contain OS information.</p>
+            </div>
+             <div>
+              <Label htmlFor="last-user-col">Last User Column (Optional)</Label>
+              <Select value={lastUserCol || 'none'} onValueChange={setLastUserCol}>
+                <SelectTrigger id="last-user-col">
+                  <SelectValue placeholder="Select a column" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {file.headers.map(header => (
+                    <SelectItem key={header} value={header}>{header}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+               <p className="text-xs text-muted-foreground mt-1">Select 'None' if this file does not contain Last User information.</p>
             </div>
           </div>
           <div className="space-y-2">

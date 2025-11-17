@@ -85,12 +85,17 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             os = row[file.mappings.os];
         }
 
-        return { computerName, lastSeen, domain, os, source: file.fileName, ...row };
+        let lastUser: string | undefined = undefined;
+        if (file.mappings.lastUser && file.mappings.lastUser !== 'none') {
+            lastUser = row[file.mappings.lastUser];
+        }
+
+        return { computerName, lastSeen, domain, os, lastUser, source: file.fileName, ...row };
     });
 }
 
 function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[]): ConsolidatedRecord[] {
-    const machineMap = new Map<string, { lastSeen: Date | null, lastSeenSource: string | null, os: { [fileName: string]: string | undefined }, sources: { [fileName: string]: Date | undefined } }>();
+    const machineMap = new Map<string, { lastSeen: Date | null, lastSeenSource: string | null, os: { [fileName: string]: string | undefined }, lastUser: { [fileName: string]: string | undefined }, sources: { [fileName: string]: Date | undefined } }>();
 
     allRecords.forEach(record => {
         if (!machineMap.has(record.computerName)) {
@@ -98,6 +103,7 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
                 lastSeen: null,
                 lastSeenSource: null,
                 os: {},
+                lastUser: {},
                 sources: Object.fromEntries(fileNames.map(name => [name, undefined]))
             });
         }
@@ -111,6 +117,10 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
         
         if (record.os) {
             machine.os[record.source] = record.os;
+        }
+
+        if (record.lastUser) {
+            machine.lastUser[record.source] = record.lastUser;
         }
 
         // Update latest overall sighting

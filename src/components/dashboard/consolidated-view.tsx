@@ -47,6 +47,7 @@ interface ConsolidatedViewProps {
   regexError: string | null;
   isFiltering: boolean;
   showOsColumn: boolean;
+  showLastUserColumn: boolean;
 }
 
 export function ConsolidatedView({ 
@@ -60,7 +61,8 @@ export function ConsolidatedView({
   setFilterMode,
   regexError,
   isFiltering,
-  showOsColumn
+  showOsColumn,
+  showLastUserColumn
 }: ConsolidatedViewProps) {
   
   if (totalRecordCount === 0) {
@@ -84,18 +86,22 @@ export function ConsolidatedView({
     return content;
   };
 
-  const getConsolidatedOs = (osRecord: ConsolidatedRecord['os']) => {
-    const osValues = Object.values(osRecord).filter(Boolean);
-    if (osValues.length === 0) return '';
-    const uniqueOses = [...new Set(osValues)];
-    return uniqueOses.join(', ');
+  const getConsolidatedValues = (record: Record<string, string | undefined>) => {
+    const values = Object.values(record).filter(Boolean);
+    if (values.length === 0) return '';
+    const uniqueValues = [...new Set(values)];
+    return uniqueValues.join(', ');
   };
 
   const handleExport = () => {
-    const headers = ['"Machine Name"'];
+    const headers: string[] = ['"Machine Name"'];
     if (showOsColumn) {
         headers.push('"OS (Consolidated)"');
         fileNames.forEach(name => headers.push(`"OS (${name})"`));
+    }
+    if (showLastUserColumn) {
+        headers.push('"Last User (Consolidated)"');
+        fileNames.forEach(name => headers.push(`"Last User (${name})"`));
     }
     headers.push('"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"');
     const csvHeaders = [...headers, ...fileNames.map(name => `"${name} Last Seen"`)].join(',');
@@ -104,9 +110,15 @@ export function ConsolidatedView({
       const rowData = [];
       rowData.push(`"${record.computerName.replace(/"/g, '""')}"`);
       if (showOsColumn) {
-          rowData.push(`"${getConsolidatedOs(record.os)}"`);
+          rowData.push(`"${getConsolidatedValues(record.os)}"`);
           fileNames.forEach(name => {
               rowData.push(`"${record.os[name] || ''}"`);
+          });
+      }
+      if (showLastUserColumn) {
+          rowData.push(`"${getConsolidatedValues(record.lastUser)}"`);
+          fileNames.forEach(name => {
+              rowData.push(`"${record.lastUser[name] || ''}"`);
           });
       }
       rowData.push(`"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`);
@@ -188,6 +200,7 @@ export function ConsolidatedView({
               <TableRow className="bg-card [&>th]:bg-card">
                 <TableHead className="w-[200px] font-code">Machine Name</TableHead>
                 {showOsColumn && <TableHead>OS</TableHead>}
+                {showLastUserColumn && <TableHead>Last User</TableHead>}
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
                 {fileNames.map(name => (
@@ -212,7 +225,8 @@ export function ConsolidatedView({
                                    <span>{record.computerName}</span>
                                 </div>
                             </TableCell>
-                            {showOsColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedOs(record.os)}</TableCell>}
+                            {showOsColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.os)}</TableCell>}
+                            {showLastUserColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.lastUser)}</TableCell>}
                             <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
