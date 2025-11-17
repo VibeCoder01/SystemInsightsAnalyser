@@ -84,10 +84,18 @@ export function ConsolidatedView({
     return content;
   };
 
+  const getConsolidatedOs = (osRecord: ConsolidatedRecord['os']) => {
+    const osValues = Object.values(osRecord).filter(Boolean);
+    if (osValues.length === 0) return '';
+    const uniqueOses = [...new Set(osValues)];
+    return uniqueOses.join(', ');
+  };
+
   const handleExport = () => {
     const headers = ['"Machine Name"'];
     if (showOsColumn) {
-        headers.push('"OS"');
+        headers.push('"OS (Consolidated)"');
+        fileNames.forEach(name => headers.push(`"OS (${name})"`));
     }
     headers.push('"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"');
     const csvHeaders = [...headers, ...fileNames.map(name => `"${name} Last Seen"`)].join(',');
@@ -96,7 +104,10 @@ export function ConsolidatedView({
       const rowData = [];
       rowData.push(`"${record.computerName.replace(/"/g, '""')}"`);
       if (showOsColumn) {
-          rowData.push(`"${record.os || ''}"`);
+          rowData.push(`"${getConsolidatedOs(record.os)}"`);
+          fileNames.forEach(name => {
+              rowData.push(`"${record.os[name] || ''}"`);
+          });
       }
       rowData.push(`"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`);
       rowData.push(record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""');
@@ -201,7 +212,7 @@ export function ConsolidatedView({
                                    <span>{record.computerName}</span>
                                 </div>
                             </TableCell>
-                            {showOsColumn && <TableCell className="text-xs py-2 px-4">{record.os}</TableCell>}
+                            {showOsColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedOs(record.os)}</TableCell>}
                             <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>

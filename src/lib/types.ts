@@ -12,9 +12,11 @@ export type ConsolidatedRecord = {
   computerName: string;
   lastSeen: Date | null;
   lastSeenSource: string | null;
-  os: string | null;
+  os: {
+    [fileName: string]: string | undefined;
+  };
   sources: {
-    [fileName: string]: Date | undefined;
+    [fileName:string]: Date | undefined;
   };
 };
 
