@@ -172,6 +172,8 @@ export default function DashboardPage() {
   
   const configuredFileCount = useMemo(() => files.filter(f => f.isConfigured).length, [files]);
 
+  const showOsColumn = useMemo(() => files.some(f => f.isConfigured && f.mappings.os && f.mappings.os !== 'none'), [files]);
+
   const filteredRecords = useMemo(() => {
     if (!analysisResults) return [];
     if (!filterText) {
@@ -388,6 +390,7 @@ export default function DashboardPage() {
                 setFilterMode={setFilterMode}
                 regexError={regexError}
                 isFiltering={isFiltering}
+                showOsColumn={showOsColumn}
             />
 
             <AnalysisResultsDisplay results={analysisResults} fileCount={files.length} />

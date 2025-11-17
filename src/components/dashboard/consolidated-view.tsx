@@ -46,6 +46,7 @@ interface ConsolidatedViewProps {
   setFilterMode: (mode: 'simple' | 'regex') => void;
   regexError: string | null;
   isFiltering: boolean;
+  showOsColumn: boolean;
 }
 
 export function ConsolidatedView({ 
@@ -58,7 +59,8 @@ export function ConsolidatedView({
   filterMode,
   setFilterMode,
   regexError,
-  isFiltering
+  isFiltering,
+  showOsColumn
 }: ConsolidatedViewProps) {
   
   if (totalRecordCount === 0) {
@@ -83,14 +85,22 @@ export function ConsolidatedView({
   };
 
   const handleExport = () => {
-    const csvHeaders = ['"Machine Name"', '"OS"', '"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"', ...fileNames.map(name => `"${name} Last Seen"`)];
+    const headers = ['"Machine Name"'];
+    if (showOsColumn) {
+        headers.push('"OS"');
+    }
+    headers.push('"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"');
+    const csvHeaders = [...headers, ...fileNames.map(name => `"${name} Last Seen"`)].join(',');
     
     const csvRows = records.map(record => {
-      const machineName = `"${record.computerName.replace(/"/g, '""')}"`;
-      const os = `"${record.os || ''}"`;
-      const disappeared = `"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`;
-      const lastSeen = record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""';
-      const lastSeenSource = record.lastSeenSource ? `"${record.lastSeenSource}"` : '""';
+      const rowData = [];
+      rowData.push(`"${record.computerName.replace(/"/g, '""')}"`);
+      if (showOsColumn) {
+          rowData.push(`"${record.os || ''}"`);
+      }
+      rowData.push(`"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`);
+      rowData.push(record.lastSeen ? `"${format(record.lastSeen, 'd LLLL yyyy')}"` : '""');
+      rowData.push(record.lastSeenSource ? `"${record.lastSeenSource}"` : '""');
       
       const sourceDates = fileNames.map(name => {
         const date = record.sources[name];
@@ -102,10 +112,10 @@ export function ConsolidatedView({
         return '""'; // Not present
       });
 
-      return [machineName, os, disappeared, lastSeen, lastSeenSource, ...sourceDates].join(',');
+      return [...rowData, ...sourceDates].join(',');
     });
 
-    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n');
+    const csvContent = [csvHeaders, ...csvRows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -166,7 +176,7 @@ export function ConsolidatedView({
             <TableHeader className="sticky top-0 z-20">
               <TableRow className="bg-card [&>th]:bg-card">
                 <TableHead className="w-[200px] font-code">Machine Name</TableHead>
-                <TableHead>OS</TableHead>
+                {showOsColumn && <TableHead>OS</TableHead>}
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
                 {fileNames.map(name => (
@@ -191,7 +201,7 @@ export function ConsolidatedView({
                                    <span>{record.computerName}</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-xs py-2 px-4">{record.os}</TableCell>
+                            {showOsColumn && <TableCell className="text-xs py-2 px-4">{record.os}</TableCell>}
                             <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
