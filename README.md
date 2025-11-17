@@ -29,7 +29,7 @@ Once the dependencies are installed, you can start the local development server:
 npm run dev
 ```
 
-The application will now be running and accessible at `http://localhost:9002`.
+The application will now be running and accessible at `http://localhost:3000`.
 
 ## Privacy & Data Storage
 
@@ -60,6 +60,7 @@ This application is designed with your privacy in mind. All file processing and 
   - `computer-name`
   - `computer.domain.com` (FQDN)
   - `domain\computer`
+- **Robust CSV Parsing**: The app correctly handles standard CSV formats, including fields that are enclosed in double quotes and may contain commas (e.g., `"Windows 11, Enterprise"`).
 - **Enhanced CSV Export**: Download the complete, filtered "Consolidated Machine View" as a CSV file. The export now includes a dedicated column indicating if a machine is considered "disappeared," as well as detailed columns for OS, Last User, Make, and Model from each source file.
 
 ## How to Use the Application
@@ -68,14 +69,14 @@ This application is designed with your privacy in mind. All file processing and 
 
 For each management system (e.g., AD, SCCM), export a report containing at least a list of computer names. For best results, also include a "last seen" or "last logon" timestamp and other relevant data like OS, Last User, Make, and Model.
 
-- **Format**: The file should be a comma-separated value (`.csv`) or plain text (`.txt`) file.
+- **Format**: The file should be a comma-separated value (`.csv`) or plain text (`.txt`) file. The parser correctly handles fields that are enclosed in double quotes, allowing for commas within the data (e.g., `"Windows 11, Enterprise"`).
 - **Header**: The first line of the file must be a header row containing the column names (e.g., `ComputerName,LastLogonDate`).
 
 **Example `ad_export.csv`:**
 ```csv
 Name,LastSeen,OperatingSystem
-CORP-PC-01,10/15/2023 10:30,Windows 11
-SALES-LAPTOP-05,11/01/2023,Windows 10
+CORP-PC-01,"Nov 15, 2023",Windows 11
+"SALES-LAPTOP-05",11/01/2023,"Windows 10, Pro"
 DEV-MACHINE,2023-11-02T08:00:00Z,Ubuntu 22.04
 ```
 
