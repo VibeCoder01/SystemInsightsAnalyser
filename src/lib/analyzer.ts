@@ -90,12 +90,22 @@ function createComputerRecords(file: ParsedFile, settings: Settings): ComputerRe
             lastUser = row[file.mappings.lastUser];
         }
 
-        return { computerName, lastSeen, domain, os, lastUser, source: file.fileName, ...row };
+        let make: string | undefined = undefined;
+        if (file.mappings.make && file.mappings.make !== 'none') {
+            make = row[file.mappings.make];
+        }
+
+        let model: string | undefined = undefined;
+        if (file.mappings.model && file.mappings.model !== 'none') {
+            model = row[file.mappings.model];
+        }
+
+        return { computerName, lastSeen, domain, os, lastUser, make, model, source: file.fileName, ...row };
     });
 }
 
 function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[]): ConsolidatedRecord[] {
-    const machineMap = new Map<string, { lastSeen: Date | null, lastSeenSource: string | null, os: { [fileName: string]: string | undefined }, lastUser: { [fileName: string]: string | undefined }, sources: { [fileName: string]: Date | undefined } }>();
+    const machineMap = new Map<string, { lastSeen: Date | null, lastSeenSource: string | null, os: { [fileName: string]: string | undefined }, lastUser: { [fileName: string]: string | undefined }, make: { [fileName: string]: string | undefined }, model: { [fileName: string]: string | undefined }, sources: { [fileName: string]: Date | undefined } }>();
 
     allRecords.forEach(record => {
         if (!machineMap.has(record.computerName)) {
@@ -104,6 +114,8 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
                 lastSeenSource: null,
                 os: {},
                 lastUser: {},
+                make: {},
+                model: {},
                 sources: Object.fromEntries(fileNames.map(name => [name, undefined]))
             });
         }
@@ -121,6 +133,14 @@ function createConsolidatedView(allRecords: ComputerRecord[], fileNames: string[
 
         if (record.lastUser) {
             machine.lastUser[record.source] = record.lastUser;
+        }
+
+        if (record.make) {
+            machine.make[record.source] = record.make;
+        }
+
+        if (record.model) {
+            machine.model[record.source] = record.model;
         }
 
         // Update latest overall sighting

@@ -5,6 +5,8 @@ export type ComputerRecord = {
   domain?: string;
   os?: string;
   lastUser?: string;
+  make?: string;
+  model?: string;
   source: string; // The file name it came from
   [key: string]: any;
 };
@@ -19,6 +21,12 @@ export type ConsolidatedRecord = {
   lastUser: {
     [fileName: string]: string | undefined;
   };
+  make: {
+    [fileName: string]: string | undefined;
+  };
+  model: {
+    [fileName: string]: string | undefined;
+  };
   sources: {
     [fileName:string]: Date | undefined;
   };
@@ -30,6 +38,8 @@ export type Mappings = {
   lastSeenFormat: string | null;
   os: string | null;
   lastUser: string | null;
+  make: string | null;
+  model: string | null;
 };
 
 export type ParsedFile = {

@@ -48,6 +48,8 @@ interface ConsolidatedViewProps {
   isFiltering: boolean;
   showOsColumn: boolean;
   showLastUserColumn: boolean;
+  showMakeColumn: boolean;
+  showModelColumn: boolean;
 }
 
 export function ConsolidatedView({ 
@@ -62,7 +64,9 @@ export function ConsolidatedView({
   regexError,
   isFiltering,
   showOsColumn,
-  showLastUserColumn
+  showLastUserColumn,
+  showMakeColumn,
+  showModelColumn
 }: ConsolidatedViewProps) {
   
   if (totalRecordCount === 0) {
@@ -103,6 +107,14 @@ export function ConsolidatedView({
         headers.push('"Last User (Consolidated)"');
         fileNames.forEach(name => headers.push(`"Last User (${name})"`));
     }
+    if (showMakeColumn) {
+        headers.push('"Make (Consolidated)"');
+        fileNames.forEach(name => headers.push(`"Make (${name})"`));
+    }
+    if (showModelColumn) {
+        headers.push('"Model (Consolidated)"');
+        fileNames.forEach(name => headers.push(`"Model (${name})"`));
+    }
     headers.push('"Is Disappeared"', '"Last Seen (Any)"', '"Last Seen Source"');
     const csvHeaders = [...headers, ...fileNames.map(name => `"${name} Last Seen"`)].join(',');
     
@@ -119,6 +131,18 @@ export function ConsolidatedView({
           rowData.push(`"${getConsolidatedValues(record.lastUser)}"`);
           fileNames.forEach(name => {
               rowData.push(`"${record.lastUser[name] || ''}"`);
+          });
+      }
+      if (showMakeColumn) {
+          rowData.push(`"${getConsolidatedValues(record.make)}"`);
+          fileNames.forEach(name => {
+              rowData.push(`"${record.make[name] || ''}"`);
+          });
+      }
+      if (showModelColumn) {
+          rowData.push(`"${getConsolidatedValues(record.model)}"`);
+          fileNames.forEach(name => {
+              rowData.push(`"${record.model[name] || ''}"`);
           });
       }
       rowData.push(`"${isTrulyDisappeared(record.lastSeen, thresholdDays) ? 'Yes' : 'No'}"`);
@@ -201,6 +225,8 @@ export function ConsolidatedView({
                 <TableHead className="w-[200px] font-code">Machine Name</TableHead>
                 {showOsColumn && <TableHead>OS</TableHead>}
                 {showLastUserColumn && <TableHead>Last User</TableHead>}
+                {showMakeColumn && <TableHead>Make</TableHead>}
+                {showModelColumn && <TableHead>Model</TableHead>}
                 <TableHead className="text-center">Last Seen (Any)</TableHead>
                 <TableHead>Last Seen Source</TableHead>
                 {fileNames.map(name => (
@@ -227,6 +253,8 @@ export function ConsolidatedView({
                             </TableCell>
                             {showOsColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.os)}</TableCell>}
                             {showLastUserColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.lastUser)}</TableCell>}
+                            {showMakeColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.make)}</TableCell>}
+                            {showModelColumn && <TableCell className="text-xs py-2 px-4">{getConsolidatedValues(record.model)}</TableCell>}
                             <TableCell className="text-center py-2 px-4">
                                 {record.lastSeen ? format(new Date(record.lastSeen), 'dd MMM yyyy') : 'Never'}
                             </TableCell>
